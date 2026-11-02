@@ -18,15 +18,10 @@ import dashboardRoutes from './modules/dashboard/routes';
 import studentRoutes from './modules/students/routes';
 import userRoutes from './modules/user/routes';
 import academicRoutes from './modules/academic/routes';
-import publicAcademicRoutes from './modules/public-academic/routes';
 import teacherRoutes from './modules/teachers/routes';
-import feeRoutes from './modules/fees/routes';
 import assignmentRoutes from './modules/assignments/routes';
 import communicationRoutes from './modules/communication/routes';
 import timetableRoutes from './modules/timetable/routes';
-import documentsRoutes from './modules/documents/routes';
-import platformRoutes from './modules/platform/routes';
-import approvalRoutes from './modules/approvals/routes';
 import attendanceRoutes from './modules/attendance/routes';
 
 const app: Express = express();
@@ -97,10 +92,6 @@ app.use('/api/v1/tenants', tenantRoutes);
 // Students & Users have public routes — modules handle their own auth
 app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/platform', platformRoutes);
-
-// Public academic lookups (grades + sections for register forms)
-app.use('/api/v1/public/academic', publicAcademicRoutes);
 
 /* ─────────────────────────────────────────────────────────────
    Fully-protected modules
@@ -112,15 +103,10 @@ app.use('/api/v1/public/academic', publicAcademicRoutes);
 app.use('/api/v1/academic', authenticate, ensureTenantMatch, academicRoutes);
 app.use('/api/v1/dashboard', authenticate, ensureTenantMatch, dashboardRoutes);
 app.use('/api/v1/teachers', authenticate, ensureTenantMatch, teacherRoutes);
-app.use('/api/v1/fees', authenticate, ensureTenantMatch, feeRoutes);
 app.use('/api/v1/assignments', authenticate, ensureTenantMatch, assignmentRoutes);
 app.use('/api/v1/communication', authenticate, ensureTenantMatch, communicationRoutes);
 app.use('/api/v1/timetable', authenticate, ensureTenantMatch, timetableRoutes);
-app.use('/api/v1/documents', authenticate, ensureTenantMatch, documentsRoutes);
 app.use('/api/v1/attendance', authenticate, ensureTenantMatch, attendanceRoutes);
-
-// School-admin approval queues (teachers / students / guardians)
-app.use('/api/v1/approvals', authenticate, ensureTenantMatch, approvalRoutes);
 
 /* ─────────────────────────────────────────────────────────────
    Error handling (must be last)

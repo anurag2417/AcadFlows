@@ -14,7 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tenantSlug } = useParams();
-  const { login, user, isPlatformAdmin } = useAuth();
+  const { login, user } = useAuth();
   const { tenant } = useTenant();
 
   const [email, setEmail] = useState('');
@@ -26,19 +26,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      // Platform admins always land on their portal
-      if (isPlatformAdmin) {
-        navigate('/platform-admin', { replace: true });
-        return;
-      }
-
       const redirectTo =
         location.state?.from?.pathname ||
         (tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard');
       navigate(redirectTo, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isPlatformAdmin, navigate, location, tenantSlug]);
+  }, [user, navigate, location, tenantSlug]);
 
   useEffect(() => {
     if (tenantSlug) return;
@@ -88,10 +82,6 @@ export default function LoginPage() {
     navigate(tenantSlug ? `/${tenantSlug}/forgot-password` : '/forgot-password');
   };
 
-  const handleRegister = () => {
-    navigate(tenantSlug ? `/${tenantSlug}/register` : '/register');
-  };
-
   const displayName = tenantSlug || tenant?.name;
 
   return (
@@ -121,20 +111,7 @@ export default function LoginPage() {
           <div className="w-full max-w-sm mx-auto">
             <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
             <p className="mt-2 text-sm text-muted">
-              Sign in to pick up where you left off.
-              {!tenantSlug && !tenant?.name && (
-                <>
-                  {' '}
-                  New here?{' '}
-                  <button
-                    type="button"
-                    onClick={handleRegister}
-                    className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-                  >
-                    Create an account
-                  </button>
-                </>
-              )}
+              Sign in with the credentials provided by your school administrator.
             </p>
 
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
@@ -291,18 +268,6 @@ export default function LoginPage() {
                 )}
               </button>
 
-              {!tenantSlug && !tenant?.name && (
-                <p className="text-center text-sm text-muted lg:hidden">
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={handleRegister}
-                    className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-                  >
-                    Register here
-                  </button>
-                </p>
-              )}
             </form>
           </div>
         </div>
@@ -324,7 +289,7 @@ export default function LoginPage() {
               Term 2025-26
             </span>
             <span className="text-xs text-white/70">
-              Attendance · Grades · Fees
+              Attendance · Grades · Communication
             </span>
           </div>
 

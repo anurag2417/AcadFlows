@@ -694,39 +694,17 @@ async function main() {
   console.log('🧪 QUICK TEST CHECKLIST');
   console.log('══════════════════════════════════════════════════════════');
   console.log(`
-1. Student self-registration (verified path)
-   → /register
-   → Enter school code (Sunrise)
-   → Pick Student
-   → Fill details
-   → Roll: C5A001, Admission: 25-SUN-0001
-   → Should show "✓ We found your record"
-   → Submit → "Waiting for approval"
-
-2. Student self-registration (unverified path)
-   → /register
-   → Enter school code (Sunrise)
-   → Pick Student
-   → Fill details
-   → Leave roll + admission blank
-   → Submit → "Waiting for approval"
-
-3. Teacher approves a student
-   → Log in as priya.sharma@sunrisegpn.edu.in (Teacher@2024)
-   → /teacher/approvals/students
-   → Approve the pending student
-
-4. Admin approves a student
-   → Log in as principal@sunrisegpn.edu.in (Admin@2024)
-   → /admin/approvals/students
-   → Approve any remaining pending students
-
-5. Add student from admin panel
+1. Add student from admin panel
    → Log in as admin
    → /students/add
    → Fill form → should generate a temp password
 
-6. Cross-tenant isolation
+2. Import students from admin panel
+   → Log in as admin
+   → /students/import
+   → Upload a CSV and verify the imported accounts
+
+3. Cross-tenant isolation
    → Log in as Sunrise admin → check /students
    → Only Sunrise students should appear
    → Log in as Green Valley admin → only Green Valley students

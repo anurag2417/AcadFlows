@@ -168,8 +168,8 @@ export default function SchoolRegistrationPage() {
                       3
                     </span>
                     <span>
-                      Then visit <strong>/register</strong>, enter your
-                      school code, and create your admin account.
+                      Once approved, the school administrator will receive
+                      login credentials from the platform team.
                     </span>
                   </li>
                 </ol>
@@ -369,12 +369,12 @@ export default function SchoolRegistrationPage() {
               </button>
 
               <p className="text-xs text-muted text-center">
-                Already have a school code?{' '}
+                Already have administrator credentials?{' '}
                 <Link
-                  to="/register"
+                  to="/login"
                   className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
                 >
-                  Join with a school code
+                  Sign in
                 </Link>
               </p>
             </form>

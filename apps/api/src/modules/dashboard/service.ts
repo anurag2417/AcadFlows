@@ -3,7 +3,6 @@ import { User } from '../../models/User';
 import { Tenant } from '../../models/Tenant';
 import { Student } from '../../models/Student';
 import { Teacher } from '../../models/Teacher';
-import { Invoice } from '../../models/Fee';
 import { Attendance } from '../../models/Attendance';
 import { AppError } from '../../middleware/error-handler';
 
@@ -30,9 +29,6 @@ interface DashboardStats {
   totalStudents: number;
   totalTeachers: number;
   attendance: string;
-  feeCollection: string;
-  revenue: number;
-  pendingInvoices: number;
 }
 
 interface ActivityItem {
@@ -53,10 +49,7 @@ interface QuickAction {
 interface QuickStats {
   totalStudents: number;
   totalTeachers: number;
-  totalInvoices: number;
-  pendingInvoices: number;
   newMessages: number;
-  leaveRequests: number;
 }
 
 interface AdminData {
@@ -120,15 +113,8 @@ interface Child {
   subjects: ChildSubject[];
 }
 
-interface FeeStatus {
-  current: string;
-  nextDue: string | null;
-  amount: number;
-}
-
 interface GuardianData {
   children: Child[];
-  feeStatus: FeeStatus;
 }
 
 interface DashboardResponse {
@@ -143,28 +129,6 @@ interface DashboardResponse {
   timetable?: TimetableClass[];
   recentGrades?: Grade[];
   children?: Child[];
-  feeStatus?: FeeStatus;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   Safe wrappers
-   ───────────────────────────────────────────────────────────── */
-
-async function safeAggregate<T>(
-  model: mongoose.Model<any>,
-  pipeline: any[],
-  fallback: T,
-): Promise<T> {
-  try {
-    const result = await model.aggregate(pipeline);
-    return result as T;
-  } catch (err) {
-    console.warn(
-      `[dashboard] aggregate failed on ${model.modelName} — returning fallback`,
-      err instanceof Error ? err.message : err,
-    );
-    throw err;
-  }
 }
 
 async function safeCount(
@@ -244,10 +208,9 @@ export class DashboardService {
   }
 
   static async getStats(tenantId: string, _role: string): Promise<DashboardStats> {
-    const [totalStudents, totalTeachers, totalInvoices] = await Promise.all([
+    const [totalStudents, totalTeachers] = await Promise.all([
       safeCount(Student, { tenantId, isDeleted: false }),
       safeCount(Teacher, { tenantId, isDeleted: false }),
-      safeCount(Invoice, { tenantId }),
     ]);
 
     const today = new Date();
@@ -269,46 +232,10 @@ export class DashboardService {
         ? Math.round((todayAttendance / totalAttendance) * 100)
         : 0;
 
-    const paidInvoices = await safeAggregate<any[]>(
-      Invoice,
-      [
-        { $match: { tenantId, status: 'paid' } },
-        { $group: { _id: null, total: { $sum: '$total' } } },
-      ],
-      [],
-    );
-
-    const totalInvoicesAmount = await safeAggregate<any[]>(
-      Invoice,
-      [
-        { $match: { tenantId } },
-        { $group: { _id: null, total: { $sum: '$total' } } },
-      ],
-      [],
-    );
-
-    const totalRevenue =
-      totalInvoicesAmount.length > 0 ? totalInvoicesAmount[0].total : 0;
-
-    const feeCollection =
-      totalInvoicesAmount.length > 0 && totalInvoicesAmount[0].total > 0
-        ? Math.round(
-            ((paidInvoices[0]?.total || 0) / totalInvoicesAmount[0].total) * 100,
-          )
-        : 0;
-
-    const pendingInvoices = await safeCount(Invoice, {
-      tenantId,
-      status: { $in: ['sent', 'partially_paid', 'overdue'] },
-    });
-
     return {
       totalStudents: totalStudents || 0,
       totalTeachers: totalTeachers || 0,
       attendance: `${attendancePercentage}%`,
-      feeCollection: `${feeCollection}%`,
-      revenue: totalRevenue || 0,
-      pendingInvoices: pendingInvoices || 0,
     };
   }
 
@@ -357,42 +284,14 @@ export class DashboardService {
       /* safe */
     }
 
-    try {
-      const recentInvoices = await Invoice.find({ tenantId })
-        .sort({ createdAt: -1 })
-        .limit(2)
-        .select('invoiceNumber total status createdAt');
-
-      recentInvoices.forEach((invoice: any) => {
-        const statusIcon = invoice.status === 'paid' ? '💰' : '📄';
-        activities.push({
-          id: `invoice_${invoice._id}`,
-          icon: statusIcon,
-          message: `Invoice ${invoice.invoiceNumber} ${
-            invoice.status === 'paid' ? 'paid' : 'generated'
-          } - ₹${invoice.total}`,
-          timestamp: this.getTimeAgo(invoice.createdAt),
-          type: 'invoice',
-        });
-      });
-    } catch {
-      /* safe */
-    }
-
     return activities.slice(0, 10);
   }
 
   static async getAdminData(tenantId: string): Promise<AdminData> {
-    const [totalStudents, totalTeachers, totalInvoices, pendingInvoices] =
-      await Promise.all([
-        safeCount(Student, { tenantId, isDeleted: false }),
-        safeCount(Teacher, { tenantId, isDeleted: false }),
-        safeCount(Invoice, { tenantId }),
-        safeCount(Invoice, {
-          tenantId,
-          status: { $in: ['sent', 'partially_paid', 'overdue'] },
-        }),
-      ]);
+    const [totalStudents, totalTeachers] = await Promise.all([
+      safeCount(Student, { tenantId, isDeleted: false }),
+      safeCount(Teacher, { tenantId, isDeleted: false }),
+    ]);
 
     let newMessages = 0;
     try {
@@ -411,14 +310,6 @@ export class DashboardService {
       /* Message model not available */
     }
 
-    let leaveRequests = 0;
-    try {
-      const Leave = mongoose.model('Leave');
-      leaveRequests = await Leave.countDocuments({ tenantId, status: 'pending' });
-    } catch {
-      /* Leave model not available */
-    }
-
     return {
       quickActions: [
         { label: 'Add Student', icon: '➕', path: '/students/add', color: 'blue' },
@@ -428,12 +319,6 @@ export class DashboardService {
           icon: '✅',
           path: '/attendance/mark',
           color: 'purple',
-        },
-        {
-          label: 'Manage Fees',
-          icon: '💰',
-          path: '/fees/invoices',
-          color: 'orange',
         },
         {
           label: 'Attendance Reports',
@@ -451,10 +336,7 @@ export class DashboardService {
       quickStats: {
         totalStudents,
         totalTeachers,
-        totalInvoices,
-        pendingInvoices,
         newMessages,
-        leaveRequests,
       },
     };
   }
@@ -790,42 +672,8 @@ export class DashboardService {
       }),
     );
 
-    // ── Step 3: Fee status ──
-
-    const studentIds = students.map((s: any) => s._id.toString());
-
-    let outstandingInvoices: any[] = [];
-    if (studentIds.length > 0) {
-      try {
-        outstandingInvoices = await Invoice.find({
-          tenantId,
-          studentId: { $in: studentIds },
-          status: { $in: ['sent', 'partially_paid', 'overdue'] },
-        }).lean();
-      } catch {
-        outstandingInvoices = [];
-      }
-    }
-
-    const totalDue = outstandingInvoices.reduce(
-      (sum: number, inv: any) => sum + (inv.balanceDue || 0),
-      0,
-    );
-
-    const nextInvoice = [...outstandingInvoices].sort(
-      (a: any, b: any) =>
-        new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
-    )[0];
-
     return {
       children,
-      feeStatus: {
-        current: totalDue > 0 ? 'Pending' : 'Paid',
-        nextDue: nextInvoice
-          ? new Date(nextInvoice.dueDate).toISOString()
-          : null,
-        amount: totalDue,
-      },
     };
   }
 

@@ -3,7 +3,7 @@ import { Card, Badge } from '../../components/ui';
 import { getErrorMessage } from '../../lib/errors';
 import { cn } from '../../lib/cn';
 import teacherApprovalsApi from '../../lib/teacher-approvals-api';
-import TeacherApprovalsLayout from './TeacherApprovalsLayout';
+import { DashboardLayout, PageHeader } from '../../components/layout';
 
 interface RosterStudent {
   _id: string;
@@ -72,10 +72,12 @@ export default function ClassRosterPage() {
   }));
 
   return (
-    <TeacherApprovalsLayout
-      title="My Class"
-      description="Students in the sections you are class teacher of"
-    >
+    <DashboardLayout>
+      <PageHeader
+        title="My Class"
+        description="Students in the sections you are class teacher of"
+        breadcrumb={[{ label: 'Dashboard', path: '/dashboard' }, { label: 'My Class' }]}
+      />
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 text-sm">
           {error}
@@ -234,6 +236,6 @@ export default function ClassRosterPage() {
           ))}
         </div>
       )}
-    </TeacherApprovalsLayout>
+    </DashboardLayout>
   );
 }

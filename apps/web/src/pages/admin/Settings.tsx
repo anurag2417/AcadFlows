@@ -15,7 +15,7 @@ import { DashboardLayout, PageHeader } from '../../components/layout';
 import { getErrorMessage } from '../../lib/errors';
 import { cn } from '../../lib/cn';
 
-type TabKey = 'general' | 'branding' | 'grading' | 'fees' | 'notifications';
+type TabKey = 'general' | 'branding' | 'grading' | 'notifications';
 
 interface GradingBand {
   grade: string;
@@ -38,19 +38,11 @@ interface SettingsState {
     affiliation?: string;
     affiliationNumber?: string;
     timezone?: string;
-    currency?: string;
     language?: string;
     gradingScale?: GradingBand[];
     passingPercent?: number;
-    feeDefaults?: {
-      lateFeePercent?: number;
-      gracePeriodDays?: number;
-      currency?: string;
-    };
     notifications?: {
       attendanceAlertsEnabled?: boolean;
-      feeRemindersEnabled?: boolean;
-      lowAttendanceThreshold?: number;
     };
   };
 }
@@ -59,7 +51,6 @@ const TABS: { id: TabKey; label: string; icon: string }[] = [
   { id: 'general', label: 'General', icon: '🏫' },
   { id: 'branding', label: 'Branding', icon: '🎨' },
   { id: 'grading', label: 'Grading', icon: '📊' },
-  { id: 'fees', label: 'Fees', icon: '💰' },
   { id: 'notifications', label: 'Notifications', icon: '🔔' },
 ];
 
@@ -187,7 +178,6 @@ export default function SettingsPage() {
       {activeTab === 'grading' && (
         <GradingTab data={data} onSave={save} saving={saving} />
       )}
-      {activeTab === 'fees' && <FeesTab data={data} onSave={save} saving={saving} />}
       {activeTab === 'notifications' && (
         <NotificationsTab data={data} onSave={save} saving={saving} />
       )}
@@ -607,75 +597,6 @@ function GradingTab({
 }
 
 /* ─────────────────────────────────────────────────────── */
-/* Fees                                                    */
-/* ─────────────────────────────────────────────────────── */
-
-function FeesTab({
-  data,
-  onSave,
-  saving,
-}: {
-  data: SettingsState;
-  onSave: (payload: any) => void;
-  saving: boolean;
-}) {
-  const [form, setForm] = useState({
-    lateFeePercent: data.settings.feeDefaults?.lateFeePercent ?? 0,
-    gracePeriodDays: data.settings.feeDefaults?.gracePeriodDays ?? 5,
-  });
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardTitle>Fee Defaults</CardTitle>
-        <CardDescription>
-          Applied to new invoices unless overridden
-        </CardDescription>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
-          <Field label="Late Fee (%)" hint="Added to overdue invoices">
-            <Input
-              type="number"
-              value={form.lateFeePercent}
-              onChange={e =>
-                setForm({ ...form, lateFeePercent: parseFloat(e.target.value) || 0 })
-              }
-              min="0"
-              max="100"
-              step="0.5"
-            />
-          </Field>
-          <Field label="Grace Period (days)" hint="Days after due date before late fee applies">
-            <Input
-              type="number"
-              value={form.gracePeriodDays}
-              onChange={e =>
-                setForm({
-                  ...form,
-                  gracePeriodDays: parseFloat(e.target.value) || 0,
-                })
-              }
-              min="0"
-              max="60"
-            />
-          </Field>
-        </div>
-
-        <div className="mt-5 pt-5 border-t border-border flex justify-end">
-          <Button
-            variant="primary"
-            onClick={() => onSave({ feeDefaults: form })}
-            loading={saving}
-          >
-            Save Fee Defaults
-          </Button>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────── */
 /* Notifications                                           */
 /* ─────────────────────────────────────────────────────── */
 
@@ -690,8 +611,6 @@ function NotificationsTab({
 }) {
   const [form, setForm] = useState({
     attendanceAlertsEnabled: data.settings.notifications?.attendanceAlertsEnabled ?? true,
-    feeRemindersEnabled: data.settings.notifications?.feeRemindersEnabled ?? true,
-    lowAttendanceThreshold: data.settings.notifications?.lowAttendanceThreshold ?? 75,
   });
 
   return (
@@ -722,45 +641,6 @@ function NotificationsTab({
             </div>
           </label>
 
-          <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-elevated transition-colors">
-            <input
-              type="checkbox"
-              checked={form.feeRemindersEnabled}
-              onChange={e =>
-                setForm({ ...form, feeRemindersEnabled: e.target.checked })
-              }
-              className="mt-1 h-4 w-4 rounded border-border text-primary-500 focus:ring-primary-500"
-            />
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                Fee reminders
-              </p>
-              <p className="text-xs text-muted mt-0.5">
-                Notify guardians about upcoming and overdue invoices
-              </p>
-            </div>
-          </label>
-
-          <div className="pt-3 border-t border-border">
-            <Field
-              label="Low Attendance Threshold (%)"
-              hint="Students below this percentage are flagged on the Warnings page"
-            >
-              <Input
-                type="number"
-                value={form.lowAttendanceThreshold}
-                onChange={e =>
-                  setForm({
-                    ...form,
-                    lowAttendanceThreshold: parseFloat(e.target.value) || 0,
-                  })
-                }
-                min="0"
-                max="100"
-                className="max-w-xs"
-              />
-            </Field>
-          </div>
         </div>
 
         <div className="mt-5 pt-5 border-t border-border flex justify-end">

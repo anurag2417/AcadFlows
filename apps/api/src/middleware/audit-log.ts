@@ -18,7 +18,6 @@ const ROUTE_RULES: RouteRule[] = [
   // Auth
   { method: 'POST', pattern: /^\/api\/v1\/auth\/login$/, resource: 'auth', action: 'login', describe: () => 'Signed in' },
   { method: 'POST', pattern: /^\/api\/v1\/auth\/logout$/, resource: 'auth', action: 'logout', describe: () => 'Signed out' },
-  { method: 'POST', pattern: /^\/api\/v1\/auth\/register$/, resource: 'user', action: 'create', describe: () => 'Registered new user' },
 
   // Students
   { method: 'POST', pattern: /^\/api\/v1\/students$/, resource: 'student', action: 'create', describe: () => 'Created a student' },
@@ -32,22 +31,6 @@ const ROUTE_RULES: RouteRule[] = [
   { method: 'PUT', pattern: /^\/api\/v1\/teachers\/([^/]+)$/, resource: 'teacher', action: 'update', describe: (p) => `Updated teacher ${p.id}` },
   { method: 'DELETE', pattern: /^\/api\/v1\/teachers\/([^/]+)$/, resource: 'teacher', action: 'delete', describe: (p) => `Deleted teacher ${p.id}` },
   { method: 'GET', pattern: /^\/api\/v1\/teachers\/export$/, resource: 'teacher', action: 'export', describe: () => 'Exported teachers CSV' },
-
-  // Fees
-  { method: 'POST', pattern: /^\/api\/v1\/fees\/structures$/, resource: 'fee_structure', action: 'create', describe: () => 'Created a fee structure' },
-  { method: 'PUT', pattern: /^\/api\/v1\/fees\/structures\/([^/]+)$/, resource: 'fee_structure', action: 'update', describe: (p) => `Updated fee structure ${p.id}` },
-  { method: 'DELETE', pattern: /^\/api\/v1\/fees\/structures\/([^/]+)$/, resource: 'fee_structure', action: 'delete', describe: (p) => `Deleted fee structure ${p.id}` },
-  { method: 'POST', pattern: /^\/api\/v1\/fees\/invoices$/, resource: 'invoice', action: 'create', describe: () => 'Generated an invoice' },
-  { method: 'PUT', pattern: /^\/api\/v1\/fees\/invoices\/([^/]+)\/status$/, resource: 'invoice', action: 'update', describe: (p) => `Updated invoice status ${p.id}` },
-  { method: 'POST', pattern: /^\/api\/v1\/fees\/payments$/, resource: 'payment', action: 'create', describe: () => 'Recorded a payment' },
-  { method: 'POST', pattern: /^\/api\/v1\/fees\/discounts$/, resource: 'discount', action: 'create', describe: () => 'Created a discount code' },
-  { method: 'PUT', pattern: /^\/api\/v1\/fees\/discounts\/([^/]+)$/, resource: 'discount', action: 'update', describe: (p) => `Updated discount ${p.id}` },
-  { method: 'DELETE', pattern: /^\/api\/v1\/fees\/discounts\/([^/]+)$/, resource: 'discount', action: 'delete', describe: (p) => `Deleted discount ${p.id}` },
-  { method: 'GET', pattern: /^\/api\/v1\/fees\/invoices\/export$/, resource: 'invoice', action: 'export', describe: () => 'Exported invoices CSV' },
-  { method: 'GET', pattern: /^\/api\/v1\/fees\/payments\/export$/, resource: 'payment', action: 'export', describe: () => 'Exported payments CSV' },
-
-  // Leaves
-  { method: 'PUT', pattern: /^\/api\/v1\/teachers\/leaves\/([^/]+)\/status$/, resource: 'leave', action: 'approve', describe: (p) => `Updated leave ${p.id}` },
 
   // Settings
   { method: 'PUT', pattern: /^\/api\/v1\/tenants\/settings$/, resource: 'settings', action: 'update', describe: () => 'Updated school settings' },

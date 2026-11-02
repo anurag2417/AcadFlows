@@ -21,8 +21,6 @@ const routeTitles: Record<string, string> = {
   '/gradebook': 'Gradebook',
   '/report-cards': 'Report Cards',
   '/timetable': 'Timetable',
-  '/fees/structures': 'Fee Structures',
-  '/fees/invoices': 'Invoices',
   '/announcements': 'Announcements',
   '/messages': 'Messages',
   '/profile': 'Profile',

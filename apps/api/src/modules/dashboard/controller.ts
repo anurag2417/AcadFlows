@@ -26,9 +26,6 @@ export class DashboardController {
         totalStudents: 0,
         totalTeachers: 0,
         attendance: '0%',
-        feeCollection: '0%',
-        revenue: 0,
-        pendingInvoices: 0,
       };
 
       try {
@@ -78,9 +75,6 @@ export class DashboardController {
           totalStudents: 0,
           totalTeachers: 0,
           attendance: '0%',
-          feeCollection: '0%',
-          revenue: 0,
-          pendingInvoices: 0,
         },
       });
     }

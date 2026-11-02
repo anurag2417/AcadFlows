@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
-import { formatCurrency, formatTimeAgo } from '../../lib/format';
+import { formatTimeAgo } from '../../lib/format';
 import { Card, CardTitle, Button } from '../ui';
 import { cn } from '../../lib/cn';
 
@@ -34,7 +33,6 @@ export default function AdminDashboard({
   tenant,
   user,
 }: AdminDashboardProps) {
-  const { isPlatformAdmin } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
@@ -124,23 +122,11 @@ export default function AdminDashboard({
       color: 'purple',
       change: '0%',
     },
-    {
-      label: 'Revenue This Month',
-      value: formatCurrency(data?.stats?.revenue ?? 0),
-      icon: '💰',
-      color: 'orange',
-      change: '0%',
-    },
   ];
 
   const quickActions: any[] = data?.quickActions ?? [];
 
-  const quickStats = data?.quickStats ?? {
-    totalRevenue: formatCurrency(0),
-    pendingInvoices: 0,
-    newMessages: 0,
-    leaveRequests: 0,
-  };
+  const quickStats = data?.quickStats ?? { newMessages: 0 };
 
   const bubbleColors: Record<string, string> = {
     blue: 'bg-blue-50 dark:bg-blue-900/20',
@@ -153,36 +139,6 @@ export default function AdminDashboard({
 
   return (
     <div className="space-y-6">
-      {/* ─── Founder banner (only for platform admin) ─── */}
-      {isPlatformAdmin && (
-        <Card className="border-primary-500/30 bg-gradient-to-r from-primary-500/10 to-secondary-500/10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-primary-500 text-white text-2xl flex-shrink-0">
-                ⚡
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
-                  Founder Account
-                </p>
-                <p className="text-base font-semibold text-foreground mt-0.5">
-                  You have platform-wide access
-                </p>
-                <p className="text-xs text-muted mt-0.5">
-                  Manage all schools, users, and approvals from the platform
-                  admin portal.
-                </p>
-              </div>
-            </div>
-            <Link to="/platform-admin" className="flex-shrink-0">
-              <Button variant="primary" leftIcon="⚡">
-                Open Platform Admin
-              </Button>
-            </Link>
-          </div>
-        </Card>
-      )}
-
       {/* ─── Welcome + Notifications ─── */}
       <Card>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -401,25 +357,6 @@ export default function AdminDashboard({
             <CardTitle className="mb-4">Quick Stats</CardTitle>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted">Total Revenue</span>
-                <span className="font-semibold text-foreground">
-                  {quickStats.totalRevenue || formatCurrency(0)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted">Pending Invoices</span>
-                <span
-                  className={cn(
-                    'font-semibold',
-                    quickStats.pendingInvoices > 0
-                      ? 'text-yellow-600 dark:text-yellow-400'
-                      : 'text-foreground',
-                  )}
-                >
-                  {quickStats.pendingInvoices || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
                 <span className="text-sm text-muted">New Messages</span>
                 <span
                   className={cn(
@@ -430,19 +367,6 @@ export default function AdminDashboard({
                   )}
                 >
                   {quickStats.newMessages || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted">Leave Requests</span>
-                <span
-                  className={cn(
-                    'font-semibold',
-                    quickStats.leaveRequests > 0
-                      ? 'text-orange-600 dark:text-orange-400'
-                      : 'text-foreground',
-                  )}
-                >
-                  {quickStats.leaveRequests || 0}
                 </span>
               </div>
             </div>

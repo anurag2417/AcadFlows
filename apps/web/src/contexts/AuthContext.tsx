@@ -24,19 +24,7 @@ interface AuthContextType {
   isLoading: boolean;
   isPlatformAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
-  isAdminExists: (tenantId: string) => Promise<boolean>;
-}
-
-interface RegisterData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: 'admin' | 'teacher' | 'student' | 'guardian';
-  tenantId: string;
-  [key: string]: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,30 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (data: RegisterData) => {
-    try {
-      // Check if trying to register as admin
-      if (data.role === 'admin') {
-        const adminExists = await isAdminExists(data.tenantId);
-        if (adminExists) {
-          throw new Error(
-            'An admin already exists for this school. Please contact your school administrator.',
-          );
-        }
-      }
-
-      const response = await api.post('/auth/register', data);
-      const { user, accessToken } = response.data.data;
-      if (accessToken) {
-        setAccessToken(accessToken);
-        setUser(user);
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
-  };
-
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -109,16 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setAccessToken(null);
       setUser(null);
-    }
-  };
-
-  const isAdminExists = async (tenantId: string): Promise<boolean> => {
-    try {
-      const response = await api.get(`/users/admin-exists/${tenantId}`);
-      return response.data.data.exists;
-    } catch (error) {
-      console.error('Error checking admin existence:', error);
-      return false;
     }
   };
 
@@ -131,9 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isPlatformAdmin,
         login,
-        register,
         logout,
-        isAdminExists,
       }}
     >
       {children}

@@ -32,18 +32,12 @@ const api = axios.create({
 const skipRefreshEndpoints = [
   '/auth/refresh',
   '/auth/login',
-  '/auth/register',
   '/auth/forgot-password',
   '/auth/reset-password',
   '/tenants/current',
   '/tenants/public',
   '/tenants/validate-code',
   '/tenants/create-school',
-  // Public student verification endpoints — used during registration
-  // while the user has no session. The global 401-handler must not
-  // see these or it will bounce the register flow to /login.
-  '/students/verify-identity',
-  '/students/verify-rollno',
 ];
 
 // ─── Request interceptor ───

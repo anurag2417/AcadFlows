@@ -41,28 +41,19 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { label: 'Students', icon: '👨‍🎓', path: '/students', roles: ['admin'] },
       { label: 'Teachers', icon: '👨‍🏫', path: '/teachers', roles: ['admin'] },
-      { label: 'Approvals', icon: '✅', path: '/admin/approvals', roles: ['admin'] },
     ],
   },
   {
     label: 'My Class',
     items: [
-      { label: 'My Class', icon: '🏫', path: '/teacher/approvals', roles: ['teacher'] },
+      { label: 'My Class', icon: '🏫', path: '/teacher/class-roster', roles: ['teacher'] },
     ],
   },
   {
     label: 'Attendance',
     items: [
       { label: 'Mark Attendance', icon: '✅', path: '/attendance/mark', roles: ['admin', 'teacher'] },
-      { label: 'Teacher Attendance', icon: '👨‍🏫', path: '/attendance/teachers', roles: ['admin'] },
       { label: 'Reports', icon: '📈', path: '/attendance/reports', roles: ['admin', 'teacher'] },
-      { label: 'Warnings', icon: '⚠️', path: '/attendance/warnings', roles: ['admin', 'teacher'] },
-    ],
-  },
-  {
-    label: 'HR',
-    items: [
-      { label: 'Leave Requests', icon: '🏖️', path: '/leaves', roles: ['admin'] },
     ],
   },
   {
@@ -75,27 +66,10 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: 'Finance',
-    items: [
-      { label: 'Fee Structures', icon: '🏷️', path: '/fees/structures', roles: ['admin'] },
-      { label: 'Invoices', icon: '💰', path: '/fees/invoices', roles: ['admin'] },
-      { label: 'Discounts', icon: '🎟️', path: '/fees/discounts', roles: ['admin'] },
-      { label: 'Reports', icon: '📊', path: '/fees/reports', roles: ['admin'] },
-    ],
-  },
-  {
     label: 'Communication',
     items: [
       { label: 'Announcements', icon: '📢', path: '/announcements', roles: ['admin', 'teacher', 'student', 'guardian'] },
       { label: 'Messages', icon: '💬', path: '/messages', roles: ['admin', 'teacher', 'student', 'guardian'] },
-    ],
-  },
-  {
-    label: 'Documents',
-    items: [
-      { label: 'ID Cards', icon: '🪪', path: '/documents/id-cards', roles: ['admin'] },
-      { label: 'Certificates', icon: '📜', path: '/documents/certificates', roles: ['admin'] },
-      { label: 'Audit Log', icon: '📋', path: '/documents/audit-log', roles: ['admin'] },
     ],
   },
   {
@@ -108,7 +82,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  const { user, isPlatformAdmin } = useAuth();
+  const { user } = useAuth();
   const role = user?.role || 'student';
 
   return (
@@ -133,31 +107,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         aria-label="Main navigation"
       >
         <nav className="p-3 space-y-5">
-          {/* Platform admin link — shown only to the founder */}
-          {isPlatformAdmin && (
-            <div>
-              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
-                Founder
-              </p>
-              <NavLink
-                to="/platform-admin"
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium',
-                    'transition-colors duration-200',
-                    'ring-1',
-                    isActive
-                      ? 'bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 ring-primary-500/40'
-                      : 'text-primary-600 dark:text-primary-400 ring-primary-500/20 hover:bg-primary-500/10',
-                  )
-                }
-              >
-                <span className="text-base flex-shrink-0">⚡</span>
-                <span className="truncate">Platform Admin</span>
-              </NavLink>
-            </div>
-          )}
-
           {navGroups.map(group => {
             const visibleItems = group.items.filter(item =>
               item.roles.includes(role),
@@ -223,11 +172,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             </p>
             <p className="text-[10px] text-muted capitalize mt-0.5">
               {role}
-              {isPlatformAdmin && (
-                <span className="ml-1.5 text-primary-600 dark:text-primary-400">
-                  · platform admin
-                </span>
-              )}
             </p>
           </div>
         </div>

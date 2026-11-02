@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardTitle } from '../ui';
-import { formatCurrency, formatDate } from '../../lib/format';
 
 interface GuardianDashboardProps {
   data: any;
@@ -11,12 +10,6 @@ interface GuardianDashboardProps {
 
 export default function GuardianDashboard({ data, tenant, user }: GuardianDashboardProps) {
   const children: any[] = data?.children || [];
-  const feeStatus = data?.feeStatus || {
-    current: 'N/A',
-    nextDue: null,
-    amount: 0,
-  };
-
   const stats = [
     { label: 'Children', value: children.length, icon: '👨‍👩‍👧' },
     {
@@ -31,16 +24,6 @@ export default function GuardianDashboard({ data, tenant, user }: GuardianDashbo
           )}%`
           : '0%',
       icon: '📊',
-    },
-    {
-      label: 'Fee Status',
-      value: feeStatus.current,
-      icon: '💰',
-    },
-    {
-      label: 'Total Due',
-      value: formatCurrency(feeStatus.amount || 0),
-      icon: '💳',
     },
   ];
 
@@ -144,42 +127,12 @@ export default function GuardianDashboard({ data, tenant, user }: GuardianDashbo
         )}
       </Card>
 
-      {/* Fee Status */}
-      {feeStatus.amount > 0 && (
-        <Card>
-          <CardTitle className="mb-4">💰 Fee Status</CardTitle>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted">Total Due</span>
-              <span className="font-semibold text-red-600 dark:text-red-400">
-                {formatCurrency(feeStatus.amount)}
-              </span>
-            </div>
-            {feeStatus.nextDue && (
-              <div className="flex justify-between">
-                <span className="text-sm text-muted">Next Due</span>
-                <span className="font-semibold text-foreground">
-                  {formatDate(feeStatus.nextDue)}
-                </span>
-              </div>
-            )}
-          </div>
-          <Link
-            to="/fees/invoices"
-            className="block text-center mt-4 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-          >
-            View All Invoices →
-          </Link>
-        </Card>
-      )}
-
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { to: '/fees', icon: '💰', title: 'Fee Status', subtitle: 'View payments' },
-          { to: '/attendance', icon: '📊', title: 'Attendance', subtitle: 'View reports' },
+          { to: '/attendance/reports', icon: '📊', title: 'Attendance', subtitle: 'View reports' },
           { to: '/announcements', icon: '📢', title: 'Announcements', subtitle: 'School updates' },
-          { to: '/fees/invoices', icon: '💰', title: 'Fee Status', subtitle: 'View payments' },
+          { to: '/messages', icon: '💬', title: 'Messages', subtitle: 'Contact the school' },
         ].map(action => (
           <Link
             key={action.to}

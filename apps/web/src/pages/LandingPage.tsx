@@ -32,16 +32,16 @@ const FEATURES: FeatureItem[] = [
       'Focused views for admins, teachers, students, and guardians.',
   },
   {
-    icon: '₹',
-    title: 'Fee Management',
+    icon: '◉',
+    title: 'Simple role-based access',
     description:
-      'Fee structures, invoices, payments, and reminders.',
+      'Focused dashboards for admins, teachers, students, and guardians.',
   },
   {
     icon: '◫',
-    title: 'Analytics & Reports',
+    title: 'Reports that matter',
     description:
-      'Attendance, grades, and fee collection at a glance.',
+      'Attendance, grades, and school activity at a glance.',
   },
   {
     icon: '✓',
@@ -94,12 +94,12 @@ const HOW_IT_WORKS = [
   {
     step: '3',
     title: 'Invite your team',
-    description: 'Students, teachers, and guardians join with the school code.',
+    description: 'Admins add people and share secure temporary credentials.',
   },
   {
     step: '4',
     title: 'Run the school day',
-    description: 'Attendance, fees, assignments, and communication — together.',
+    description: 'Attendance, assignments, grades, and communication — together.',
   },
 ];
 
@@ -211,7 +211,7 @@ export default function LandingPage() {
               Sign In
             </Link>
             <Link
-              to="/register"
+              to="/school/register"
               className="rounded-xl bg-primary-500 px-5 py-2.5 text-[15px] font-bold text-white shadow-lg shadow-primary-500/20 transition hover:-translate-y-0.5 hover:bg-primary-600"
             >
               Get started
@@ -268,7 +268,7 @@ export default function LandingPage() {
                 Sign In
               </Link>
               <Link
-                to="/register"
+                to="/school/register"
                 onClick={() => setMenuOpen(false)}
                 className="mt-1 rounded-xl bg-primary-500 px-3 py-3 text-center text-[15px] font-bold text-white"
               >
@@ -304,7 +304,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mt-6 max-w-xl text-[17px] leading-7 text-muted sm:text-lg sm:leading-8">
-                One platform for academics, attendance, fees, communication,
+                One platform for academics, attendance, communication,
                 and performance. Give your team more time to focus on students.
               </p>
 
@@ -370,9 +370,8 @@ export default function LandingPage() {
                       <ul className="space-y-1">
                         {[
                           { icon: '⌂', label: 'Overview', active: true },
-                          { icon: '◫', label: 'Analytics' },
                           { icon: '✓', label: 'Attendance' },
-                          { icon: '₹', label: 'Fees' },
+                          { icon: '◈', label: 'Grades' },
                           { icon: '▤', label: 'Assignments' },
                         ].map(item => (
                           <li key={item.label}>
@@ -413,7 +412,7 @@ export default function LandingPage() {
                         {[
                           { label: 'Students', tone: 'bg-primary-500' },
                           { label: 'Attendance', tone: 'bg-emerald-500' },
-                          { label: 'Fees', tone: 'bg-secondary-500' },
+                          { label: 'Grades', tone: 'bg-secondary-500' },
                           { label: 'Assignments', tone: 'bg-accent-500' },
                         ].map(item => (
                           <article
@@ -703,11 +702,6 @@ export default function LandingPage() {
               <li>
                 <Link to="/school/register" className="hover:text-primary-600">
                   Register your school
-                </Link>
-              </li>
-              <li>
-                <Link to="/register" className="hover:text-primary-600">
-                  Join with a school code
                 </Link>
               </li>
               <li>
