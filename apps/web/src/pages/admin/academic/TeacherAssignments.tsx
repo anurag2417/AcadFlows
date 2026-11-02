@@ -77,7 +77,7 @@ export default function TeacherAssignmentsPage() {
     <DashboardLayout>
       <PageHeader
         title="Teacher Assignments"
-        description="Assign teachers to teach subjects in specific sections"
+        description="Assign teachers to multiple subjects. Class teachers are assigned separately on the Classes & Sections page."
         breadcrumb={[
           { label: 'Dashboard', path: '/dashboard' },
           { label: 'Teacher Assignments' },
@@ -196,15 +196,21 @@ function AssignmentModal({
   onClose,
   onSuccess,
 }: any) {
-  const currentYear = academicYears.find((y: any) => y.isCurrent);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
     teacherId: '',
     subjectId: '',
     sectionId: '',
-    academicYearId: currentYear?._id || '',
+    academicYearId: '',
   });
+
+  useEffect(() => {
+    if (!form.academicYearId && academicYears.length > 0) {
+      const currentYear = academicYears.find((year: any) => year.isCurrent) || academicYears[0];
+      setForm(previous => ({ ...previous, academicYearId: currentYear._id }));
+    }
+  }, [academicYears, form.academicYearId]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,6 +240,21 @@ function AssignmentModal({
         )}
 
         <form onSubmit={submit} className="space-y-4">
+          <div>
+            <Label required>Academic year</Label>
+            <Select
+              value={form.academicYearId}
+              onChange={e => setForm({ ...form, academicYearId: e.target.value })}
+              required
+            >
+              <option value="">Select academic year</option>
+              {academicYears.map((year: any) => (
+                <option key={year._id} value={year._id}>
+                  {year.name}{year.isCurrent ? ' (Current)' : ''}
+                </option>
+              ))}
+            </Select>
+          </div>
           <div>
             <Label required>Teacher</Label>
             <Select

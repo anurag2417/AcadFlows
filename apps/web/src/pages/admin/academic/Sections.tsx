@@ -90,7 +90,7 @@ export default function SectionsPage() {
     <DashboardLayout>
       <PageHeader
         title="Classes & Sections"
-        description="Manage class sections and assign class teachers"
+        description="Manage sections and assign at most one class teacher to each section"
         breadcrumb={[
           { label: 'Dashboard', path: '/dashboard' },
           { label: 'Classes & Sections' },
@@ -389,7 +389,7 @@ function SectionModal({
               ))}
             </Select>
             <p className="mt-1.5 text-xs text-muted">
-              One teacher can be class teacher of only one section
+              Each teacher can be the class teacher of only one section.
             </p>
           </div>
 

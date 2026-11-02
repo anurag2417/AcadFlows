@@ -126,6 +126,15 @@ export class GradeService {
 // Section Service
 export class SectionService {
   static async create(data: any) {
+    if (data.classTeacherId) {
+      const existing = await Section.findOne({
+        tenantId: data.tenantId,
+        classTeacherId: data.classTeacherId,
+      });
+      if (existing) {
+        throw new AppError('This teacher is already the class teacher of another section', 409);
+      }
+    }
     const section = await Section.create(data);
     return section;
   }
@@ -152,6 +161,16 @@ export class SectionService {
   static async update(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
+    }
+    if (data.classTeacherId) {
+      const existing = await Section.findOne({
+        tenantId,
+        classTeacherId: data.classTeacherId,
+        _id: { $ne: id },
+      });
+      if (existing) {
+        throw new AppError('This teacher is already the class teacher of another section', 409);
+      }
     }
     const section = await Section.findOneAndUpdate(
       { _id: id, tenantId },
