@@ -317,7 +317,7 @@ function BrandingTab({
       <Card>
         <CardTitle>School Logo</CardTitle>
         <CardDescription>
-          Appears on ID cards, certificates, and printed documents. Max 2 MB, PNG or JPG.
+          Used across the school dashboard. Max 2 MB, PNG or JPG.
         </CardDescription>
 
         <div className="mt-5 flex items-center gap-5">
@@ -416,7 +416,7 @@ function BrandingTab({
         </div>
 
         <div className="mt-4">
-          <Field label="School Motto" hint="Displayed under the school name on documents">
+          <Field label="School Motto" hint="Displayed under the school name">
             <Input
               value={form.motto}
               onChange={e => setForm({ ...form, motto: e.target.value })}

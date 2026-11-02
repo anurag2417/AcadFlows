@@ -361,7 +361,6 @@ export default function StudentDashboard({ data, tenant, user }: StudentDashboar
               {[
                 { to: '/assignments', icon: '📝', label: 'Assignments' },
                 { to: '/gradebook', icon: '📊', label: 'Grades' },
-                { to: '/attendance/reports', icon: '✅', label: 'Attendance' },
                 { to: '/timetable', icon: '📅', label: 'Timetable' },
               ].map(action => (
                 <Link

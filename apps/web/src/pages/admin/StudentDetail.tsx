@@ -81,12 +81,11 @@ interface Student {
   updatedAt: string;
 }
 
-type TabKey = 'profile' | 'enrollments' | 'documents' | 'medical';
+type TabKey = 'profile' | 'enrollments' | 'medical';
 
 const tabs: { id: TabKey; label: string; icon: string }[] = [
   { id: 'profile', label: 'Profile', icon: '👤' },
   { id: 'enrollments', label: 'Enrollments', icon: '📚' },
-  { id: 'documents', label: 'Documents', icon: '📎' },
   { id: 'medical', label: 'Medical', icon: '🏥' },
 ];
 
@@ -437,46 +436,6 @@ export default function StudentDetailPage() {
                           ))}
                         </tbody>
                       </table>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'documents' && (
-                <div>
-                  {student.documents.length === 0 ? (
-                    <div className="text-center py-12">
-                      <p className="text-4xl mb-3">📎</p>
-                      <p className="text-sm text-muted">No documents uploaded</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {student.documents.map((doc, idx) => (
-                        <div
-                          key={idx}
-                          className="p-4 rounded-lg border border-border bg-surface flex items-center justify-between gap-3 hover:bg-elevated transition-colors"
-                        >
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground truncate">
-                              {doc.name}
-                            </p>
-                            <p className="text-xs text-muted capitalize">
-                              {doc.type.replace(/([A-Z])/g, ' $1').trim()}
-                            </p>
-                            <p className="text-[10px] text-muted mt-0.5">
-                              {formatDate(doc.uploadedAt)}
-                            </p>
-                          </div>
-                          <a
-                            href={doc.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary-600 hover:text-primary-700 text-sm font-medium whitespace-nowrap"
-                          >
-                            View →
-                          </a>
-                        </div>
-                      ))}
                     </div>
                   )}
                 </div>

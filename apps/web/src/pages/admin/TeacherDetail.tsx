@@ -63,12 +63,6 @@ interface Teacher {
     phone: string;
     relationship: string;
   };
-  leaveBalance: {
-    annual: number;
-    sick: number;
-    casual: number;
-    other: number;
-  };
   status: string;
   userId: {
     email: string;
@@ -83,13 +77,12 @@ interface SubjectOption {
   code: string;
 }
 
-type TabKey = 'profile' | 'qualifications' | 'experience' | 'leave';
+type TabKey = 'profile' | 'qualifications' | 'experience';
 
 const tabs: { id: TabKey; label: string; icon: string }[] = [
   { id: 'profile', label: 'Profile', icon: '👤' },
   { id: 'qualifications', label: 'Qualifications', icon: '🎓' },
   { id: 'experience', label: 'Experience', icon: '💼' },
-  { id: 'leave', label: 'Leave Balance', icon: '📅' },
 ];
 
 export default function TeacherDetailPage() {
@@ -468,30 +461,6 @@ export default function TeacherDetailPage() {
                 </div>
               )}
 
-              {activeTab === 'leave' && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <LeaveCard
-                    label="Annual"
-                    value={teacher.leaveBalance.annual}
-                    variant="primary"
-                  />
-                  <LeaveCard
-                    label="Sick"
-                    value={teacher.leaveBalance.sick}
-                    variant="success"
-                  />
-                  <LeaveCard
-                    label="Casual"
-                    value={teacher.leaveBalance.casual}
-                    variant="warning"
-                  />
-                  <LeaveCard
-                    label="Other"
-                    value={teacher.leaveBalance.other}
-                    variant="accent"
-                  />
-                </div>
-              )}
             </div>
           </Card>
         </div>
@@ -531,37 +500,6 @@ function EmptyState({ icon, text }: { icon: string; text: string }) {
     <div className="text-center py-12">
       <p className="text-4xl mb-3">{icon}</p>
       <p className="text-sm text-muted">{text}</p>
-    </div>
-  );
-}
-
-function LeaveCard({
-  label,
-  value,
-  variant,
-}: {
-  label: string;
-  value: number;
-  variant: 'primary' | 'success' | 'warning' | 'accent';
-}) {
-  const colorClasses: Record<string, string> = {
-    primary:
-      'bg-primary-500/10 text-primary-700 dark:text-primary-400 border-primary-500/20',
-    success:
-      'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20',
-    warning:
-      'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20',
-    accent:
-      'bg-accent-500/10 text-accent-700 dark:text-accent-400 border-accent-500/20',
-  };
-
-  return (
-    <div className={cn('p-4 rounded-lg border text-center', colorClasses[variant])}>
-      <p className="text-xs font-medium uppercase tracking-wider opacity-80">
-        {label}
-      </p>
-      <p className="text-3xl font-bold mt-2">{value}</p>
-      <p className="text-[10px] opacity-60 mt-1">days remaining</p>
     </div>
   );
 }

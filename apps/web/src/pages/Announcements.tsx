@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { Card, Button, Badge, Input, Label, Select, Textarea } from '../components/ui';
@@ -219,13 +218,6 @@ export default function AnnouncementsPage() {
                     >
                       Mark as Read
                     </Button>
-                  )}
-                  {(user?.role === 'admin' || user?.role === 'teacher') && (
-                    <Link to={`/announcements/${announcement._id}/edit`}>
-                      <Button variant="ghost" size="sm">
-                        Edit
-                      </Button>
-                    </Link>
                   )}
                 </div>
               </div>

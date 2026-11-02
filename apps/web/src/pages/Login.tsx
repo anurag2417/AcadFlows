@@ -299,13 +299,13 @@ export default function LoginPage() {
             </h2>
             <p className="mt-3 text-sm text-white/80 leading-relaxed">
               Students, teachers, and guardians all check attendance, grades,
-              and fee status in one place, tuned to your school.
+              and announcements in one place, tuned to your school.
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-5 max-w-md">
             <p className="text-sm text-gray-700 leading-relaxed">
-              "Switching to one login for my kid's attendance, grades, and fees
+              "Switching to one login for my kid's attendance, grades, and updates
               saved me a dozen phone calls a term."
             </p>
             <div className="mt-3 flex items-center gap-2">

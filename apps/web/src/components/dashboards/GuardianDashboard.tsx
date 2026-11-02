@@ -95,12 +95,6 @@ export default function GuardianDashboard({ data, tenant, user }: GuardianDashbo
                         {child.grades}
                       </p>
                     </div>
-                    <Link
-                      to={`/students/${child.id}`}
-                      className="px-3 py-1 text-sm rounded-lg bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50 transition-colors"
-                    >
-                      View Details →
-                    </Link>
                   </div>
                 </div>
 
@@ -130,7 +124,6 @@ export default function GuardianDashboard({ data, tenant, user }: GuardianDashbo
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { to: '/attendance/reports', icon: '📊', title: 'Attendance', subtitle: 'View reports' },
           { to: '/announcements', icon: '📢', title: 'Announcements', subtitle: 'School updates' },
           { to: '/messages', icon: '💬', title: 'Messages', subtitle: 'Contact the school' },
         ].map(action => (
