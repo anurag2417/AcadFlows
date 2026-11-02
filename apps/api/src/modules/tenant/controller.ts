@@ -98,8 +98,6 @@ export class TenantController {
 
   static async createSchool(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log('📝 Creating school with data:', req.body);
-
       const validated = createSchoolSchema.parse(req.body);
 
       const tenant = await TenantService.createSchool({
@@ -180,8 +178,6 @@ export class TenantController {
 
   static async validateSchoolCode(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log('🔍 Validating school code:', req.body);
-
       const validated = validateSchoolCodeSchema.parse(req.body);
       const result = await TenantService.validateSchoolCode(
         validated.schoolCode,

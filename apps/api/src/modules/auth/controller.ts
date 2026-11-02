@@ -56,16 +56,7 @@ function getRefreshCookieOptions(): {
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log('📝 Registration request body:', req.body);
-
       const validated = registerSchema.parse(req.body);
-      console.log('✅ Validated data:', {
-        email: validated.email,
-        firstName: validated.firstName,
-        lastName: validated.lastName,
-        role: validated.role,
-        tenantId: validated.tenantId,
-      });
 
       const result = await AuthService.register(validated);
 
@@ -101,12 +92,10 @@ export class AuthController {
 
   static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log('📝 Login request for:', req.body.email);
-
       const validated = loginSchema.parse(req.body);
       const result = await AuthService.login(validated);
 
-      console.log('✅ Login successful for:', result.user.email);
+      console.log('✅ Login successful');
 
       const cookieOpts = getRefreshCookieOptions();
       res.cookie('refreshToken', result.tokens.refreshToken, cookieOpts);

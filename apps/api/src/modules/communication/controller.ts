@@ -283,8 +283,7 @@ export class CommunicationController {
       );
       res.json({ success: true, data: { count } });
     } catch (error) {
-      console.error('❌ Announcement unread count error:', error);
-      res.json({ success: true, data: { count: 0 } });
+      next(error);
     }
   }
 
@@ -408,8 +407,7 @@ export class CommunicationController {
       );
       res.json({ success: true, data: { count } });
     } catch (error) {
-      console.error('❌ Message unread count error:', error);
-      res.json({ success: true, data: { count: 0 } });
+      next(error);
     }
   }
 

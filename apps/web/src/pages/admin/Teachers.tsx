@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/api';
 import {
@@ -75,7 +75,7 @@ export default function TeachersPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setPagination({ ...pagination, page: 1 });
     fetchTeachers();
