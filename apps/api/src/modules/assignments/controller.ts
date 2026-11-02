@@ -4,22 +4,14 @@ import { z } from 'zod';
 import { AuthRequest } from '../../middleware/auth';
 import { Teacher } from '../../models/Teacher';
 import { Student } from '../../models/Student';
-
-class AppError extends Error {
-  statusCode: number;
-
-  constructor(message: string, statusCode: number) {
-    super(message);
-    this.name = 'AppError';
-    this.statusCode = statusCode;
-  }
-}
+import { AppError } from '../../middleware/error-handler';
 
 // Validation Schemas
 const createAssignmentSchema = z.object({
   academicYearId: z.string().min(1),
   sectionId: z.string().min(1),
   subjectId: z.string().min(1),
+  teacherId: z.string().min(1).optional(),
   title: z.string().min(1),
   description: z.string().min(1),
   type: z.enum(['homework', 'classwork', 'project', 'quiz', 'test', 'exam']),
@@ -65,21 +57,31 @@ export class AssignmentController {
       const authReq = req as AuthRequest;
       const validated = createAssignmentSchema.parse(req.body);
 
-      // Look up the Teacher document for this user.
       const teacher = await Teacher.findOne({
         userId: authReq.user.id,
         tenantId: authReq.user.tenantId,
         isDeleted: false,
       });
-      if (!teacher) {
-        throw new AppError('Teacher profile not found for this user', 404);
+      const teacherId = validated.teacherId || teacher?._id.toString();
+      if (!teacherId) {
+        throw new AppError('A teacher profile or teacherId is required', 400);
+      }
+      if (!teacher || validated.teacherId) {
+        const assignedTeacher = await Teacher.findOne({
+          _id: teacherId,
+          tenantId: authReq.user.tenantId,
+          isDeleted: false,
+        });
+        if (!assignedTeacher) {
+          throw new AppError('Teacher profile not found', 404);
+        }
       }
 
       const assignment = await AssignmentService.createAssignment(
         authReq.user.tenantId,
         {
           ...validated,
-          teacherId: teacher._id.toString(),
+          teacherId,
           createdBy: authReq.user.id,
         }
       );

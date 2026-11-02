@@ -102,9 +102,9 @@ router.delete(
 );
 
 router.get('/:teacherId/schedule', TeacherController.getSchedule);
-router.get('/:teacherId/leaves', TeacherController.getLeaves);
-router.post('/:teacherId/leaves', TeacherController.createLeave);
-router.get('/:teacherId/leaves/balance', TeacherController.getLeaveBalance);
+router.get('/:teacherId/leaves', requireRole('admin', 'teacher'), TeacherController.getLeaves);
+router.post('/:teacherId/leaves', requireRole('admin', 'teacher'), TeacherController.createLeave);
+router.get('/:teacherId/leaves/balance', requireRole('admin', 'teacher'), TeacherController.getLeaveBalance);
 
 router.post(
   '/:teacherId/documents',

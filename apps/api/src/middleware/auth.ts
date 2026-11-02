@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import type { TenantRequest } from './tenant-context';
 import { User } from '../models/User';
+import { Tenant } from '../models/Tenant';
 import { isPlatformAdminEmail } from '../utils/platform-admin';
 
 export interface AuthRequest extends Request {
@@ -44,6 +45,12 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     }
 
     const platformAdmin = isPlatformAdminEmail(user.email);
+    if (!platformAdmin) {
+      const tenant = await Tenant.findOne({ _id: user.tenantId }).select('status');
+      if (!tenant || tenant.status !== 'active') {
+        return res.status(403).json({ success: false, error: 'School is not active' });
+      }
+    }
     if (!platformAdmin && user.status !== 'active') {
       return res.status(403).json({
         success: false,
@@ -107,7 +114,10 @@ export function ensureTenantMatch(req: Request, res: Response, next: NextFunctio
   }
 
   if (!tenantReq.tenantId) {
-    return next();
+    return res.status(400).json({
+      success: false,
+      error: 'Active tenant context is required',
+    });
   }
 
   if (authReq.user.tenantId !== tenantReq.tenantId) {

@@ -55,15 +55,15 @@ export class AcademicYearService {
     return academicYear;
   }
 
-  static async setCurrent(id: string) {
+  static async setCurrent(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
     // Remove current flag from all
-    await AcademicYear.updateMany({}, { $set: { isCurrent: false } });
+    await AcademicYear.updateMany({ tenantId }, { $set: { isCurrent: false } });
     // Set current flag for the selected
     const academicYear = await AcademicYear.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: { isCurrent: true } },
       { new: true }
     );

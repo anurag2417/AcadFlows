@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { TenantService } from './service';
 import { AppError } from '../../middleware/error-handler';
+import { AuthRequest } from '../../middleware/auth';
+import { isPlatformAdminEmail } from '../../utils/platform-admin';
 import { formatSchoolCode } from '../../utils/school-code';
 import { config } from '../../config';
 import { z } from 'zod';
@@ -308,43 +310,6 @@ export class TenantController {
         tenantId = req.query.tenantId as string;
       }
 
-      // Dev fallback: subdomain detection
-      if (!tenantId && process.env.NODE_ENV === 'development') {
-        const host = req.get('host') || '';
-        const subdomain = host.split('.')[0];
-        if (
-          subdomain &&
-          subdomain !== 'localhost' &&
-          subdomain !== 'www' &&
-          subdomain !== 'app'
-        ) {
-          try {
-            const tenant = await TenantService.getBySlug(subdomain);
-            if (tenant) {
-              return res.json({
-                success: true,
-                data: tenant,
-              });
-            }
-          } catch {
-            /* ignore */
-          }
-        }
-      }
-
-      // Dev fallback: any active tenant
-      if (!tenantId && process.env.NODE_ENV === 'development') {
-        try {
-          const Tenant = mongoose.model('Tenant');
-          const anyTenant = await Tenant.findOne({ status: 'active' });
-          if (anyTenant) {
-            tenantId = anyTenant._id.toString();
-          }
-        } catch {
-          /* ignore */
-        }
-      }
-
       if (!tenantId) {
         return res.status(404).json({
           success: false,
@@ -402,7 +367,11 @@ export class TenantController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const tenant = await TenantService.getById(req.params.id);
+      const auth = (req as AuthRequest).user;
+      const tenantId = auth && isPlatformAdminEmail(auth.email)
+        ? undefined
+        : auth?.tenantId;
+      const tenant = await TenantService.getById(req.params.id, tenantId);
       res.json({
         success: true,
         data: tenant,
@@ -454,7 +423,11 @@ export class TenantController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = updateTenantSchema.parse(req.body);
-      const tenant = await TenantService.update(req.params.id, validated);
+      const auth = (req as AuthRequest).user;
+      const tenantId = auth && isPlatformAdminEmail(auth.email)
+        ? undefined
+        : auth?.tenantId;
+      const tenant = await TenantService.update(req.params.id, validated, tenantId);
       res.json({
         success: true,
         data: tenant,
@@ -468,7 +441,11 @@ export class TenantController {
   static async list(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = listTenantsSchema.parse(req.query);
-      const result = await TenantService.list(validated);
+      const auth = (req as AuthRequest).user;
+      const options = auth && isPlatformAdminEmail(auth.email)
+        ? validated
+        : { ...validated, tenantId: auth?.tenantId };
+      const result = await TenantService.list(options);
       res.json({
         success: true,
         data: result,

@@ -217,12 +217,15 @@ export class StudentService {
     };
   }
 
-  static async getStudentById(studentId: string) {
+  static async getStudentById(studentId: string, tenantId?: string) {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       throw new AppError('Invalid student ID', 400);
     }
 
-    const student = await Student.findById(studentId).populate(
+    const student = await Student.findOne({
+      _id: studentId,
+      ...(tenantId ? { tenantId } : {}),
+    }).populate(
       'userId',
       'email phone profilePicture',
     );
@@ -242,20 +245,20 @@ export class StudentService {
     return student;
   }
 
-  static async updateStudent(studentId: string, data: any) {
+  static async updateStudent(studentId: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       throw new AppError('Invalid student ID', 400);
     }
 
     if (data.grade) {
-      const student = await Student.findById(studentId);
+      const student = await Student.findOne({ _id: studentId, tenantId });
       if (student && student.grade !== data.grade) {
         data.rollNo = await this.generateRollNumber(student.tenantId, data.grade);
       }
     }
 
     const student = await Student.findByIdAndUpdate(
-      studentId,
+      { _id: studentId, tenantId },
       { $set: data },
       { new: true, runValidators: true },
     );
@@ -280,13 +283,13 @@ export class StudentService {
     return student;
   }
 
-  static async deleteStudent(studentId: string) {
+  static async deleteStudent(studentId: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       throw new AppError('Invalid student ID', 400);
     }
 
     const student = await Student.findByIdAndUpdate(
-      studentId,
+      { _id: studentId, tenantId },
       {
         $set: {
           isDeleted: true,
@@ -308,12 +311,12 @@ export class StudentService {
     return student;
   }
 
-  static async enrollStudent(studentId: string, enrollmentData: any) {
+  static async enrollStudent(studentId: string, tenantId: string, enrollmentData: any) {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       throw new AppError('Invalid student ID', 400);
     }
 
-    const student = await Student.findById(studentId);
+    const student = await Student.findOne({ _id: studentId, tenantId });
     if (!student) {
       throw new AppError('Student not found', 404);
     }
@@ -348,13 +351,13 @@ export class StudentService {
     return student;
   }
 
-  static async withdrawStudent(studentId: string, reason: string) {
+  static async withdrawStudent(studentId: string, tenantId: string, reason: string) {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       throw new AppError('Invalid student ID', 400);
     }
 
     const student = await Student.findByIdAndUpdate(
-      studentId,
+      { _id: studentId, tenantId },
       {
         $set: {
           status: 'withdrawn',
@@ -450,13 +453,13 @@ export class StudentService {
     return results;
   }
 
-  static async uploadDocument(studentId: string, documentData: any) {
+  static async uploadDocument(studentId: string, tenantId: string, documentData: any) {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       throw new AppError('Invalid student ID', 400);
     }
 
-    const student = await Student.findByIdAndUpdate(
-      studentId,
+    const student = await Student.findOneAndUpdate(
+      { _id: studentId, tenantId },
       {
         $push: {
           documents: {

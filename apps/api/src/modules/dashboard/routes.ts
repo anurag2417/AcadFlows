@@ -5,7 +5,7 @@ import { requireRole } from '../../middleware/auth';
 const router: Router = Router();
 
 router.get('/', DashboardController.getDashboardData);
-router.get('/stats', DashboardController.getStats);
+router.get('/stats', requireRole('admin', 'teacher'), DashboardController.getStats);
 router.get('/recent-activity', DashboardController.getRecentActivity);
 router.get('/students', requireRole('admin', 'teacher'), DashboardController.getStudents);
 router.get('/teachers', requireRole('admin', 'teacher'), DashboardController.getTeachers);

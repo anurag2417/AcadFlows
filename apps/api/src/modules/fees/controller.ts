@@ -2,16 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { FeeService } from './service';
 import { z } from 'zod';
 import { AuthRequest } from '../../middleware/auth';
-
-class AppError extends Error {
-  statusCode: number;
-
-  constructor(message: string, statusCode: number) {
-    super(message);
-    this.name = 'AppError';
-    this.statusCode = statusCode;
-  }
-}
+import { AppError } from '../../middleware/error-handler';
 
 // Validation Schemas
 const feeStructureSchema = z.object({
@@ -100,7 +91,7 @@ export class FeeController {
       const structures = await FeeService.getFeeStructures(
         authReq.user.tenantId,
         academicYearId as string,
-        isActive === 'true'
+        isActive === undefined ? true : isActive === 'true',
       );
 
       res.json({
@@ -115,7 +106,10 @@ export class FeeController {
   static async getFeeStructureById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const structure = await FeeService.getFeeStructureById(id);
+      const structure = await FeeService.getFeeStructureById(
+        id,
+        (req as AuthRequest).user.tenantId,
+      );
 
       res.json({
         success: true,
@@ -131,7 +125,11 @@ export class FeeController {
       const { id } = req.params;
       const validated = feeStructureSchema.partial().parse(req.body);
 
-      const structure = await FeeService.updateFeeStructure(id, validated);
+      const structure = await FeeService.updateFeeStructure(
+        id,
+        (req as AuthRequest).user.tenantId,
+        validated,
+      );
 
       res.json({
         success: true,
@@ -146,7 +144,7 @@ export class FeeController {
   static async deleteFeeStructure(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await FeeService.deleteFeeStructure(id);
+      await FeeService.deleteFeeStructure(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -211,7 +209,10 @@ export class FeeController {
   static async getInvoiceById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const invoice = await FeeService.getInvoiceById(id);
+      const invoice = await FeeService.getInvoiceById(
+        id,
+        (req as AuthRequest).user.tenantId,
+      );
 
       res.json({
         success: true,
@@ -227,11 +228,15 @@ export class FeeController {
       const { id } = req.params;
       const { status } = req.body;
 
-      if (!status) {
+      if (!['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'].includes(status)) {
         throw new AppError('Status is required', 400);
       }
 
-      const invoice = await FeeService.updateInvoiceStatus(id, status);
+      const invoice = await FeeService.updateInvoiceStatus(
+        id,
+        (req as AuthRequest).user.tenantId,
+        status,
+      );
 
       res.json({
         success: true,
@@ -297,7 +302,10 @@ export class FeeController {
   static async getPaymentById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const payment = await FeeService.getPaymentById(id);
+      const payment = await FeeService.getPaymentById(
+        id,
+        (req as AuthRequest).user.tenantId,
+      );
 
       res.json({
         success: true,
@@ -374,7 +382,11 @@ export class FeeController {
       const { id } = req.params;
       const validated = discountSchema.partial().parse(req.body);
 
-      const discount = await FeeService.updateDiscount(id, validated);
+      const discount = await FeeService.updateDiscount(
+        id,
+        (req as AuthRequest).user.tenantId,
+        validated,
+      );
 
       res.json({
         success: true,
@@ -389,7 +401,7 @@ export class FeeController {
   static async deleteDiscount(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await FeeService.deleteDiscount(id);
+      await FeeService.deleteDiscount(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,

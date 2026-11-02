@@ -72,7 +72,7 @@ router.get(
 /* ─────────────────────────────────────────────────────────────
    Dynamic routes — LAST
    ───────────────────────────────────────────────────────────── */
-router.get('/students/:studentId', AttendanceController.getStudentAttendance);
+router.get('/students/:studentId', requireRole('admin', 'teacher'), AttendanceController.getStudentAttendance);
 router.get(
   '/teachers/:teacherId',
   requireRole('admin'),
@@ -83,6 +83,6 @@ router.get(
    Holiday + stats
    ───────────────────────────────────────────────────────────── */
 router.post('/holiday', requireRole('admin'), AttendanceController.markHoliday);
-router.get('/stats', AttendanceController.getStats);
+router.get('/stats', requireRole('admin', 'teacher'), AttendanceController.getStats);
 
 export default router;

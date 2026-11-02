@@ -3,6 +3,7 @@ import { TeacherService, LeaveService } from './service';
 import { Teacher } from '../../models/Teacher';
 import { z } from 'zod';
 import { AuthRequest } from '../../middleware/auth';
+import { AppError } from '../../middleware/error-handler';
 
 // ─────────────────────────────────────────────────────────────
 // Reusable sub-schemas
@@ -218,7 +219,10 @@ export class TeacherController {
   static async getTeacherById(req: Request, res: Response, next: NextFunction) {
     try {
       const { teacherId } = req.params;
-      const teacher = await TeacherService.getTeacherById(teacherId);
+      const teacher = await TeacherService.getTeacherById(
+        teacherId,
+        (req as AuthRequest).user.tenantId,
+      );
       res.json({ success: true, data: teacher });
     } catch (error) {
       next(error);
@@ -230,7 +234,11 @@ export class TeacherController {
       const { teacherId } = req.params;
       const validated = updateTeacherSchema.parse(req.body);
 
-      const teacher = await TeacherService.updateTeacher(teacherId, validated);
+      const teacher = await TeacherService.updateTeacher(
+        teacherId,
+        (req as AuthRequest).user.tenantId,
+        validated,
+      );
 
       res.json({
         success: true,
@@ -245,7 +253,10 @@ export class TeacherController {
   static async deleteTeacher(req: Request, res: Response, next: NextFunction) {
     try {
       const { teacherId } = req.params;
-      await TeacherService.deleteTeacher(teacherId);
+      await TeacherService.deleteTeacher(
+        teacherId,
+        (req as AuthRequest).user.tenantId,
+      );
       res.json({ success: true, message: 'Teacher deleted successfully!' });
     } catch (error) {
       next(error);
@@ -320,6 +331,14 @@ export class TeacherController {
     try {
       const authReq = req as AuthRequest;
       const { teacherId } = req.params;
+      if (authReq.user.role === 'teacher') {
+        const ownTeacher = await Teacher.findOne({
+          _id: teacherId,
+          tenantId: authReq.user.tenantId,
+          userId: authReq.user.id,
+        });
+        if (!ownTeacher) throw new AppError('Forbidden', 403);
+      }
       const validated = createLeaveSchema.parse(req.body);
 
       const leave = await LeaveService.createLeave({
@@ -346,11 +365,11 @@ export class TeacherController {
   static async getLeaves(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { teacherId, status, type, startDate, endDate, page, limit } =
-        req.query;
+      const { teacherId } = req.params;
+      const { status, type, startDate, endDate, page, limit } = req.query;
 
       const result = await LeaveService.getLeaves(authReq.user.tenantId, {
-        teacherId: teacherId as string,
+        teacherId,
         status: status as string,
         type: type as string,
         startDate: startDate ? new Date(startDate as string) : undefined,
@@ -401,7 +420,10 @@ export class TeacherController {
   static async getLeaveBalance(req: Request, res: Response, next: NextFunction) {
     try {
       const { teacherId } = req.params;
-      const balance = await LeaveService.getLeaveBalance(teacherId);
+      const balance = await LeaveService.getLeaveBalance(
+        teacherId,
+        (req as AuthRequest).user.tenantId,
+      );
       res.json({ success: true, data: balance });
     } catch (error) {
       next(error);

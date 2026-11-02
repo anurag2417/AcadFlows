@@ -219,7 +219,10 @@ export class AnnouncementService {
 
     if (filters.userId) {
       try {
-        const user = await User.findById(filters.userId).lean();
+        const user = await User.findOne({
+          _id: filters.userId,
+          tenantId,
+        }).lean();
         if (user) {
           query.$or = [
             { targetAudience: 'all' },
@@ -268,12 +271,12 @@ export class AnnouncementService {
     };
   }
 
-  static async getAnnouncementById(id: string) {
+  static async getAnnouncementById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const announcement = await Announcement.findById(id).populate(
+    const announcement = await Announcement.findOne({ _id: id, tenantId }).populate(
       'createdBy',
       'firstName lastName',
     );
@@ -285,13 +288,13 @@ export class AnnouncementService {
     return announcement;
   }
 
-  static async updateAnnouncement(id: string, data: any) {
+  static async updateAnnouncement(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid announcement ID', 400);
     }
 
     const announcement = await Announcement.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },
     );
@@ -303,12 +306,12 @@ export class AnnouncementService {
     return announcement;
   }
 
-  static async deleteAnnouncement(id: string) {
+  static async deleteAnnouncement(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const announcement = await Announcement.findByIdAndDelete(id);
+    const announcement = await Announcement.findOneAndDelete({ _id: id, tenantId });
     if (!announcement) {
       throw new AppError('Announcement not found', 404);
     }
@@ -408,7 +411,7 @@ export class AnnouncementService {
       announcements = await Announcement.find({
         tenantId,
         isPublished: true,
-        expiresAt: { $or: [{ $gte: new Date() }, { $exists: false }] },
+        $or: [{ expiresAt: { $gte: new Date() } }, { expiresAt: { $exists: false } }],
       }).lean();
     } catch {
       return 0;
@@ -416,7 +419,7 @@ export class AnnouncementService {
 
     let user: any = null;
     try {
-      user = await User.findById(userId).lean();
+      user = await User.findOne({ _id: userId, tenantId }).lean();
     } catch {
       return 0;
     }
@@ -530,6 +533,10 @@ export class MessagingService {
 
     if (!conversation) {
       throw new AppError('Conversation not found', 404);
+    }
+
+    if (!conversation.participants.some(p => p.userId === data.senderId)) {
+      throw new AppError('Unauthorized', 403);
     }
 
     const recipient = conversation.participants.find(

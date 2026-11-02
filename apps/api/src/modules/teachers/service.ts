@@ -154,12 +154,12 @@ export class TeacherService {
     };
   }
 
-  static async getTeacherById(teacherId: string) {
+  static async getTeacherById(teacherId: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       throw new AppError('Invalid teacher ID', 400);
     }
 
-    const teacher = await Teacher.findById(teacherId).populate(
+    const teacher = await Teacher.findOne({ _id: teacherId, tenantId }).populate(
       'userId',
       'email phone profilePicture',
     );
@@ -171,13 +171,13 @@ export class TeacherService {
     return teacher;
   }
 
-  static async updateTeacher(teacherId: string, data: any) {
+  static async updateTeacher(teacherId: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       throw new AppError('Invalid teacher ID', 400);
     }
 
     const teacher = await Teacher.findByIdAndUpdate(
-      teacherId,
+      { _id: teacherId, tenantId },
       { $set: data },
       { new: true, runValidators: true },
     );
@@ -202,13 +202,13 @@ export class TeacherService {
     return teacher;
   }
 
-  static async deleteTeacher(teacherId: string) {
+  static async deleteTeacher(teacherId: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       throw new AppError('Invalid teacher ID', 400);
     }
 
     const teacher = await Teacher.findByIdAndUpdate(
-      teacherId,
+      { _id: teacherId, tenantId },
       {
         $set: {
           isDeleted: true,
@@ -474,8 +474,8 @@ export class LeaveService {
     return leave;
   }
 
-  static async getLeaveBalance(teacherId: string) {
-    const teacher = await Teacher.findById(teacherId);
+  static async getLeaveBalance(teacherId: string, tenantId: string) {
+    const teacher = await Teacher.findOne({ _id: teacherId, tenantId });
     if (!teacher) {
       throw new AppError('Teacher not found', 404);
     }

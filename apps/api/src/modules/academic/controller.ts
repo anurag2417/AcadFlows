@@ -187,7 +187,10 @@ export class AcademicYearController {
 
   static async setCurrent(req: Request, res: Response, next: NextFunction) {
     try {
-      const academicYear = await AcademicYearService.setCurrent(req.params.id);
+      const academicYear = await AcademicYearService.setCurrent(
+        req.params.id,
+        (req as AuthRequest).user.tenantId,
+      );
       res.json({
         success: true,
         data: academicYear,

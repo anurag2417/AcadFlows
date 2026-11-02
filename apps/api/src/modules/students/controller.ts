@@ -256,7 +256,10 @@ export class StudentController {
   static async getStudentById(req: Request, res: Response, next: NextFunction) {
     try {
       const { studentId } = req.params;
-      const student = await StudentService.getStudentById(studentId);
+      const student = await StudentService.getStudentById(
+        studentId,
+        (req as AuthRequest).user.tenantId,
+      );
 
       res.json({ success: true, data: student });
     } catch (error) {
@@ -269,7 +272,11 @@ export class StudentController {
       const { studentId } = req.params;
       const validated = updateStudentSchema.parse(req.body);
 
-      const student = await StudentService.updateStudent(studentId, validated);
+      const student = await StudentService.updateStudent(
+        studentId,
+        (req as AuthRequest).user.tenantId,
+        validated,
+      );
 
       res.json({
         success: true,
@@ -284,7 +291,10 @@ export class StudentController {
   static async deleteStudent(req: Request, res: Response, next: NextFunction) {
     try {
       const { studentId } = req.params;
-      await StudentService.deleteStudent(studentId);
+      await StudentService.deleteStudent(
+        studentId,
+        (req as AuthRequest).user.tenantId,
+      );
 
       res.json({
         success: true,
@@ -300,7 +310,11 @@ export class StudentController {
       const { studentId } = req.params;
       const validated = enrollStudentSchema.parse(req.body);
 
-      const student = await StudentService.enrollStudent(studentId, validated);
+      const student = await StudentService.enrollStudent(
+        studentId,
+        (req as AuthRequest).user.tenantId,
+        validated,
+      );
 
       res.json({
         success: true,
@@ -321,7 +335,11 @@ export class StudentController {
         throw new AppError('Withdrawal reason is required', 400);
       }
 
-      const student = await StudentService.withdrawStudent(studentId, reason);
+      const student = await StudentService.withdrawStudent(
+        studentId,
+        (req as AuthRequest).user.tenantId,
+        reason,
+      );
 
       res.json({
         success: true,
@@ -365,13 +383,17 @@ export class StudentController {
 
       const url = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 
-      const document = await StudentService.uploadDocument(studentId, {
+      const document = await StudentService.uploadDocument(
+        studentId,
+        (req as AuthRequest).user.tenantId,
+        {
         type,
         name: name || file.originalname,
         url,
         size: file.size,
         mimeType: file.mimetype,
-      });
+        },
+      );
 
       res.json({
         success: true,

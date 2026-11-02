@@ -776,6 +776,12 @@ export class AuthService {
       if (!isPlatformAdmin && user.status !== 'active') {
         throw new AppError('Invalid refresh token', 401);
       }
+      if (!isPlatformAdmin) {
+        const tenant = await Tenant.findOne({ _id: user.tenantId }).select('status');
+        if (!tenant || tenant.status !== 'active') {
+          throw new AppError('Invalid refresh token', 401);
+        }
+      }
 
       return this.generateTokens(
         user.id,

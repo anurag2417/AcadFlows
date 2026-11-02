@@ -44,12 +44,12 @@ export class FeeService {
     return await FeeStructure.find(query).sort({ createdAt: -1 });
   }
 
-  static async getFeeStructureById(id: string) {
+  static async getFeeStructureById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid fee structure ID', 400);
     }
 
-    const structure = await FeeStructure.findById(id);
+    const structure = await FeeStructure.findOne({ _id: id, tenantId });
     if (!structure) {
       throw new AppError('Fee structure not found', 404);
     }
@@ -57,7 +57,7 @@ export class FeeService {
     return structure;
   }
 
-  static async updateFeeStructure(id: string, data: any) {
+  static async updateFeeStructure(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid fee structure ID', 400);
     }
@@ -72,7 +72,7 @@ export class FeeService {
     }
 
     const structure = await FeeStructure.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },
     );
@@ -84,12 +84,12 @@ export class FeeService {
     return structure;
   }
 
-  static async deleteFeeStructure(id: string) {
+  static async deleteFeeStructure(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid fee structure ID', 400);
     }
 
-    const structure = await FeeStructure.findByIdAndDelete(id);
+    const structure = await FeeStructure.findOneAndDelete({ _id: id, tenantId });
     if (!structure) {
       throw new AppError('Fee structure not found', 404);
     }
@@ -140,6 +140,9 @@ export class FeeService {
         });
 
         if (discount) {
+          if (discount.maxUses && discount.usedCount >= discount.maxUses) {
+            throw new AppError('Discount code has reached its maximum usage limit', 400);
+          }
           discountType = discount.type;
           discountCode = discount.code;
 
@@ -149,8 +152,6 @@ export class FeeService {
             discountAmount = discount.value;
           }
 
-          discount.usedCount += 1;
-          await discount.save({ session });
         }
       }
 
@@ -256,12 +257,12 @@ export class FeeService {
     };
   }
 
-  static async getInvoiceById(id: string) {
+  static async getInvoiceById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid invoice ID', 400);
     }
 
-    const raw = await Invoice.findById(id).lean();
+    const raw = await Invoice.findOne({ _id: id, tenantId }).lean();
     if (!raw) {
       throw new AppError('Invoice not found', 404);
     }
@@ -270,13 +271,17 @@ export class FeeService {
     return invoice;
   }
 
-  static async updateInvoiceStatus(id: string, status: string) {
+  static async updateInvoiceStatus(id: string, tenantId: string, status: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid invoice ID', 400);
     }
 
-    const invoice = await Invoice.findByIdAndUpdate(
-      id,
+    if (!['draft', 'sent', 'partially_paid', 'cancelled'].includes(status)) {
+      throw new AppError('Paid invoices must be reconciled through a payment', 400);
+    }
+
+    const invoice = await Invoice.findOneAndUpdate(
+      { _id: id, tenantId },
       {
         $set: {
           status,
@@ -343,6 +348,7 @@ export class FeeService {
       invoice.paymentReference = data.reference;
 
       const newBalance = invoice.total - invoice.paidAmount;
+      invoice.balanceDue = Math.max(0, newBalance);
       if (newBalance <= 0) {
         invoice.status = 'paid';
         invoice.paidAt = new Date();
@@ -408,12 +414,12 @@ export class FeeService {
     };
   }
 
-  static async getPaymentById(id: string) {
+  static async getPaymentById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid payment ID', 400);
     }
 
-    const raw = await Payment.findById(id).lean();
+    const raw = await Payment.findOne({ _id: id, tenantId }).lean();
     if (!raw) {
       throw new AppError('Payment not found', 404);
     }
@@ -464,7 +470,7 @@ export class FeeService {
     return discount;
   }
 
-  static async updateDiscount(id: string, data: any) {
+  static async updateDiscount(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid discount ID', 400);
     }
@@ -474,7 +480,7 @@ export class FeeService {
     }
 
     const discount = await Discount.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },
     );
@@ -486,12 +492,12 @@ export class FeeService {
     return discount;
   }
 
-  static async deleteDiscount(id: string) {
+  static async deleteDiscount(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid discount ID', 400);
     }
 
-    const discount = await Discount.findByIdAndDelete(id);
+    const discount = await Discount.findOneAndDelete({ _id: id, tenantId });
     if (!discount) {
       throw new AppError('Discount not found', 404);
     }

@@ -199,12 +199,15 @@ export class TenantService {
     return tenantObj;
   }
 
-  static async getById(id: string): Promise<any> {
+  static async getById(id: string, tenantId?: string): Promise<any> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid tenant ID format', 400);
     }
 
-    const tenant = await Tenant.findById(id);
+    const tenant = await Tenant.findOne({
+      _id: id,
+      ...(tenantId ? { _id: tenantId } : {}),
+    });
     if (!tenant) {
       throw new AppError('Tenant not found', 404);
     }
@@ -236,6 +239,7 @@ export class TenantService {
   static async update(
     id: string,
     data: Partial<TenantType>,
+    tenantId?: string,
   ): Promise<any> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid tenant ID format', 400);
@@ -251,8 +255,8 @@ export class TenantService {
       }
     }
 
-    const tenant = await Tenant.findByIdAndUpdate(
-      id,
+    const tenant = await Tenant.findOneAndUpdate(
+      { _id: id, ...(tenantId ? { _id: tenantId } : {}) },
       { $set: data },
       { new: true, runValidators: true },
     );
@@ -276,8 +280,10 @@ export class TenantService {
     offset?: number;
     status?: string;
     search?: string;
+    tenantId?: string;
   }) {
     const filter: any = {};
+    if (options.tenantId) filter._id = options.tenantId;
     if (options.status) {
       filter.status = options.status;
     }

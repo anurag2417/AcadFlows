@@ -54,7 +54,7 @@ router.get('/', requireRole('admin', 'teacher'), StudentController.getStudents);
 router.get('/search', requireRole('admin', 'teacher'), StudentController.searchStudents);
 router.get('/stats', requireRole('admin', 'teacher'), StudentController.getStats);
 router.post('/', requireRole('admin'), StudentController.createStudent);
-router.get('/:studentId', StudentController.getStudentById);
+router.get('/:studentId', requireRole('admin', 'teacher'), StudentController.getStudentById);
 router.put('/:studentId', requireRole('admin'), StudentController.updateStudent);
 router.delete('/:studentId', requireRole('admin'), StudentController.deleteStudent);
 

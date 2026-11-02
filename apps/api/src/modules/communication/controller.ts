@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { NotificationService, AnnouncementService, MessagingService } from './service';
 import { z } from 'zod';
 import { AuthRequest } from '../../middleware/auth';
+import { AppError } from '../../middleware/error-handler';
 
 // Validation Schemas
 const createNotificationSchema = z.object({
@@ -186,7 +187,10 @@ export class CommunicationController {
   static async getAnnouncementById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const announcement = await AnnouncementService.getAnnouncementById(id);
+      const announcement = await AnnouncementService.getAnnouncementById(
+        id,
+        (req as AuthRequest).user.tenantId,
+      );
 
       res.json({ success: true, data: announcement });
     } catch (error) {
@@ -198,8 +202,22 @@ export class CommunicationController {
     try {
       const { id } = req.params;
       const validated = createAnnouncementSchema.partial().parse(req.body);
+      const authReq = req as AuthRequest;
+      if (authReq.user.role !== 'admin') {
+        const existing = await AnnouncementService.getAnnouncementById(
+          id,
+          authReq.user.tenantId,
+        );
+        if (String(existing.createdBy) !== authReq.user.id) {
+          throw new AppError('Insufficient permissions', 403);
+        }
+      }
 
-      const announcement = await AnnouncementService.updateAnnouncement(id, validated);
+      const announcement = await AnnouncementService.updateAnnouncement(
+        id,
+        authReq.user.tenantId,
+        validated,
+      );
 
       res.json({
         success: true,
@@ -214,7 +232,20 @@ export class CommunicationController {
   static async deleteAnnouncement(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await AnnouncementService.deleteAnnouncement(id);
+      const authReq = req as AuthRequest;
+      if (authReq.user.role !== 'admin') {
+        const existing = await AnnouncementService.getAnnouncementById(
+          id,
+          authReq.user.tenantId,
+        );
+        if (String(existing.createdBy) !== authReq.user.id) {
+          throw new AppError('Insufficient permissions', 403);
+        }
+      }
+      await AnnouncementService.deleteAnnouncement(
+        id,
+        authReq.user.tenantId,
+      );
 
       res.json({ success: true, message: 'Announcement deleted successfully!' });
     } catch (error) {
