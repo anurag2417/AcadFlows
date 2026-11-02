@@ -3,6 +3,7 @@ import { NotificationService, AnnouncementService, MessagingService } from './se
 import { z } from 'zod';
 import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/error-handler';
+import { parsePagination } from '../../utils/pagination';
 
 // Validation Schemas
 const createNotificationSchema = z.object({
@@ -45,7 +46,8 @@ export class CommunicationController {
   static async getNotifications(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { read, type, page, limit } = req.query;
+      const { read, type, page: rawPage, limit: rawLimit } = req.query;
+      const { page, limit } = parsePagination(rawPage, rawLimit);
 
       const result = await NotificationService.getNotifications(
         authReq.user.tenantId,
@@ -53,8 +55,8 @@ export class CommunicationController {
         {
           read: read === 'true' ? true : read === 'false' ? false : undefined,
           type: type as string,
-          page: page ? parseInt(page as string) : 1,
-          limit: limit ? parseInt(limit as string) : 20,
+          page,
+          limit,
         },
       );
 
@@ -162,7 +164,8 @@ export class CommunicationController {
   static async getAnnouncements(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { type, priority, isPublished, userId, page, limit } = req.query;
+      const { type, priority, isPublished, userId, page: rawPage, limit: rawLimit } = req.query;
+      const { page, limit } = parsePagination(rawPage, rawLimit);
 
       const result = await AnnouncementService.getAnnouncements(
         authReq.user.tenantId,
@@ -170,9 +173,12 @@ export class CommunicationController {
           type: type as string,
           priority: priority as string,
           isPublished: isPublished === 'true' ? true : isPublished === 'false' ? false : undefined,
-          userId: (userId as string) || authReq.user.id,
-          page: page ? parseInt(page as string) : 1,
-          limit: limit ? parseInt(limit as string) : 20,
+          userId:
+            authReq.user.role === 'admin'
+              ? (userId as string) || authReq.user.id
+              : authReq.user.id,
+          page,
+          limit,
         },
       );
 
@@ -340,14 +346,15 @@ export class CommunicationController {
   static async getConversations(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { page, limit } = req.query;
+      const { page: rawPage, limit: rawLimit } = req.query;
+      const { page, limit } = parsePagination(rawPage, rawLimit);
 
       const result = await MessagingService.getConversations(
         authReq.user.tenantId,
         authReq.user.id,
         {
-          page: page ? parseInt(page as string) : 1,
-          limit: limit ? parseInt(limit as string) : 20,
+          page,
+          limit,
         },
       );
 
@@ -361,15 +368,16 @@ export class CommunicationController {
     try {
       const authReq = req as AuthRequest;
       const { conversationId } = req.params;
-      const { page, limit } = req.query;
+      const { page: rawPage, limit: rawLimit } = req.query;
+      const { page, limit } = parsePagination(rawPage, rawLimit, 50);
 
       const result = await MessagingService.getConversationMessages(
         authReq.user.tenantId,
         conversationId,
         authReq.user.id,
         {
-          page: page ? parseInt(page as string) : 1,
-          limit: limit ? parseInt(limit as string) : 50,
+          page,
+          limit,
         },
       );
 

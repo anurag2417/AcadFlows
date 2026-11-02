@@ -33,7 +33,7 @@ export class AcademicYearService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const academicYear = await AcademicYear.findByIdAndUpdate(
+    const academicYear = await AcademicYear.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
@@ -62,7 +62,7 @@ export class AcademicYearService {
     // Remove current flag from all
     await AcademicYear.updateMany({ tenantId }, { $set: { isCurrent: false } });
     // Set current flag for the selected
-    const academicYear = await AcademicYear.findByIdAndUpdate(
+    const academicYear = await AcademicYear.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: { isCurrent: true } },
       { new: true }
@@ -100,7 +100,7 @@ export class GradeService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const grade = await Grade.findByIdAndUpdate(
+    const grade = await Grade.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
@@ -153,7 +153,7 @@ export class SectionService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const section = await Section.findByIdAndUpdate(
+    const section = await Section.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
@@ -206,7 +206,7 @@ export class SubjectService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const subject = await Subject.findByIdAndUpdate(
+    const subject = await Subject.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
@@ -344,7 +344,7 @@ export class ScheduleService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const schedule = await Schedule.findByIdAndUpdate(
+    const schedule = await Schedule.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }

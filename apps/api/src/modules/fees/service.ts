@@ -4,6 +4,7 @@ import { Student } from '../../models/Student';
 import { User } from '../../models/User';
 import { AppError } from '../../middleware/error-handler';
 import { attachRefs } from '../../utils/attach-refs';
+import { escapeRegex } from '../../utils/search';
 
 const invoiceRefs = {
   studentId: { model: Student, fields: 'firstName lastName rollNo grade section admissionNo' },
@@ -71,7 +72,7 @@ export class FeeService {
       data.items = items;
     }
 
-    const structure = await FeeStructure.findByIdAndUpdate(
+    const structure = await FeeStructure.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },
@@ -108,7 +109,7 @@ export class FeeService {
         _id: data.studentId,
         tenantId,
         isDeleted: false,
-      });
+      }).session(session);
 
       if (!student) {
         throw new AppError('Student not found', 404);
@@ -137,7 +138,7 @@ export class FeeService {
             { endDate: { $gte: new Date() } },
             { endDate: { $exists: false } },
           ],
-        });
+        }).session(session);
 
         if (discount) {
           if (discount.maxUses && discount.usedCount >= discount.maxUses) {
@@ -179,6 +180,26 @@ export class FeeService {
         { session },
       );
 
+      if (discountCode) {
+        const usage = await Discount.updateOne(
+          {
+            tenantId,
+            code: discountCode,
+            isActive: true,
+            $or: [
+              { maxUses: { $exists: false } },
+              { maxUses: null },
+              { $expr: { $lt: ['$usedCount', '$maxUses'] } },
+            ],
+          },
+          { $inc: { usedCount: 1 } },
+          { session },
+        );
+        if (usage.modifiedCount !== 1) {
+          throw new AppError('Discount code has reached its maximum usage limit', 409);
+        }
+      }
+
       await session.commitTransaction();
       session.endSession();
 
@@ -215,20 +236,21 @@ export class FeeService {
 
     // If search, first find matching students to filter by studentIds
     if (filters.search) {
+      const search = escapeRegex(filters.search);
       const students = await Student.find({
         tenantId,
         $or: [
-          { firstName: { $regex: filters.search, $options: 'i' } },
-          { lastName: { $regex: filters.search, $options: 'i' } },
-          { rollNo: { $regex: filters.search, $options: 'i' } },
-          { admissionNo: { $regex: filters.search, $options: 'i' } },
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { rollNo: { $regex: search, $options: 'i' } },
+          { admissionNo: { $regex: search, $options: 'i' } },
         ],
       }).select('_id').lean();
 
       const ids = students.map(s => s._id.toString());
 
       query.$or = [
-        { invoiceNumber: { $regex: filters.search, $options: 'i' } },
+        { invoiceNumber: { $regex: search, $options: 'i' } },
         { studentId: { $in: ids } },
       ];
     }
@@ -280,6 +302,14 @@ export class FeeService {
       throw new AppError('Paid invoices must be reconciled through a payment', 400);
     }
 
+    const current = await Invoice.findOne({ _id: id, tenantId }).select('status');
+    if (!current) {
+      throw new AppError('Invoice not found', 404);
+    }
+    if (current.status === 'paid' && status !== 'paid') {
+      throw new AppError('Paid invoices cannot be moved to another status', 409);
+    }
+
     const invoice = await Invoice.findOneAndUpdate(
       { _id: id, tenantId },
       {
@@ -308,7 +338,7 @@ export class FeeService {
       const invoice = await Invoice.findOne({
         _id: data.invoiceId,
         tenantId,
-      });
+      }).session(session);
 
       if (!invoice) {
         throw new AppError('Invoice not found', 404);
@@ -479,7 +509,7 @@ export class FeeService {
       data.code = data.code.toUpperCase();
     }
 
-    const discount = await Discount.findByIdAndUpdate(
+    const discount = await Discount.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },

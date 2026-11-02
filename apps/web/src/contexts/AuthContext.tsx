@@ -5,7 +5,7 @@ import React, {
   useEffect,
 } from 'react';
 import type { ReactNode } from 'react';
-import api from '../lib/api';
+import api, { setAccessToken } from '../lib/api';
 
 interface User {
   id: string;
@@ -47,18 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
+        await api.post('/auth/refresh');
         const response = await api.get('/auth/me');
         setUser(response.data.data.user);
       } catch (error) {
         console.error('Failed to load user:', error);
-        localStorage.removeItem('accessToken');
+        setAccessToken(null);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -72,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { user, accessToken } = response.data.data;
-      localStorage.setItem('accessToken', accessToken);
+      setAccessToken(accessToken);
       setUser(user);
     } catch (error) {
       console.error('Login error:', error);
@@ -95,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await api.post('/auth/register', data);
       const { user, accessToken } = response.data.data;
       if (accessToken) {
-        localStorage.setItem('accessToken', accessToken);
+        setAccessToken(accessToken);
         setUser(user);
       }
     } catch (error) {
@@ -110,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('accessToken');
+      setAccessToken(null);
       setUser(null);
     }
   };

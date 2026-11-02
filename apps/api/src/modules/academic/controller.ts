@@ -37,12 +37,16 @@ const optionalStringArray = z
 // Schemas
 // ─────────────────────────────────────────────────────────────
 
-const academicYearSchema = z.object({
+const academicYearBaseSchema = z.object({
   name: z.string().min(1, 'Academic year name is required'),
   code: z.string().min(1, 'Code is required'),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   description: optionalString,
+});
+const academicYearSchema = academicYearBaseSchema.refine(data => data.endDate > data.startDate, {
+  message: 'End date must be after start date',
+  path: ['endDate'],
 });
 
 const gradeSchema = z.object({
@@ -164,7 +168,7 @@ export class AcademicYearController {
 
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const validated = academicYearSchema.partial().parse(req.body);
+      const validated = academicYearBaseSchema.partial().parse(req.body);
       const academicYear = await AcademicYearService.update(req.params.id, (req as AuthRequest).user.tenantId, validated);
       res.json({
         success: true,

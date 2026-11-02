@@ -1,5 +1,15 @@
 import axios from 'axios';
 
+let accessToken: string | null = null;
+
+export function setAccessToken(token: string | null) {
+  accessToken = token;
+}
+
+export function hasAccessToken() {
+  return accessToken !== null;
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
   headers: {
@@ -34,15 +44,13 @@ const skipRefreshEndpoints = [
   // see these or it will bounce the register flow to /login.
   '/students/verify-identity',
   '/students/verify-rollno',
-  '/students/tenant/',
 ];
 
 // ─── Request interceptor ───
 api.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
@@ -75,12 +83,6 @@ api.interceptors.response.use(
     // a redirect; let the calling page decide what to do. This is what
     // prevents public flows (register, verify, password reset) from
     // bouncing to /login on a benign 401.
-    const hasRefreshCookie = document.cookie.includes('refreshToken');
-    const hasStoredToken = !!localStorage.getItem('accessToken');
-    if (!hasRefreshCookie && !hasStoredToken) {
-      return Promise.reject(error);
-    }
-
     originalRequest._retry = true;
 
     console.log('🔁 Access token expired, attempting refresh…');
@@ -90,7 +92,7 @@ api.interceptors.response.use(
       const newToken = response.data.data?.accessToken;
 
       if (newToken) {
-        localStorage.setItem('accessToken', newToken);
+        setAccessToken(newToken);
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         console.log('✅ Token refreshed, retrying request');
         return api(originalRequest);
@@ -99,7 +101,7 @@ api.interceptors.response.use(
       throw new Error('No token received from refresh');
     } catch (refreshError) {
       console.warn('❌ Token refresh failed, logging out');
-      localStorage.removeItem('accessToken');
+      setAccessToken(null);
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }

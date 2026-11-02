@@ -32,6 +32,9 @@ const experienceSchema = z.object({
   toDate: z.coerce.date().optional(),
   isCurrent: z.boolean().optional().default(false),
   responsibilities: z.string().optional().default(''),
+}).refine(data => !data.toDate || data.toDate >= data.fromDate, {
+  message: 'End date must be on or after start date',
+  path: ['toDate'],
 });
 
 const emergencyContactSchema = z.object({
@@ -136,6 +139,9 @@ const createLeaveSchema = z.object({
   reason: z.string().min(1, 'Reason is required'),
   isHalfDay: z.boolean().optional().default(false),
   attachment: z.string().optional(),
+}).refine(data => data.endDate >= data.startDate, {
+  message: 'End date must be on or after start date',
+  path: ['endDate'],
 });
 
 const updateLeaveStatusSchema = z.object({
@@ -266,8 +272,9 @@ export class TeacherController {
   static async assignSubject(req: Request, res: Response, next: NextFunction) {
     try {
       const { teacherId } = req.params;
+      const tenantId = (req as AuthRequest).user.tenantId;
       const { subjectId, sectionId, academicYearId, isPrimary } = req.body;
-      const teacher = await TeacherService.assignSubject(teacherId, {
+      const teacher = await TeacherService.assignSubject(teacherId, tenantId, {
         subjectId,
         sectionId,
         academicYearId,
@@ -286,8 +293,10 @@ export class TeacherController {
   static async removeSubject(req: Request, res: Response, next: NextFunction) {
     try {
       const { teacherId, subjectId, sectionId } = req.params;
+      const tenantId = (req as AuthRequest).user.tenantId;
       const teacher = await TeacherService.removeSubject(
         teacherId,
+        tenantId,
         subjectId,
         sectionId,
       );
@@ -304,9 +313,11 @@ export class TeacherController {
   static async getSchedule(req: Request, res: Response, next: NextFunction) {
     try {
       const { teacherId } = req.params;
+      const tenantId = (req as AuthRequest).user.tenantId;
       const { date } = req.query;
       const schedule = await TeacherService.getTeacherSchedule(
         teacherId,
+        tenantId,
         date ? new Date(date as string) : undefined,
       );
       res.json({ success: true, data: schedule });

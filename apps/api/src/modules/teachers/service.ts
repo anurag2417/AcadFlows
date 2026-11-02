@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import { Teacher } from '../../models/Teacher';
 import { Leave } from '../../models/Leave';
 import { User } from '../../models/User';
 import { Tenant } from '../../models/Tenant';
 import { AppError } from '../../middleware/error-handler';
+import { escapeRegex } from '../../utils/search';
 
 export class TeacherService {
   /**
@@ -23,8 +25,7 @@ export class TeacherService {
 
       if (!userId) {
         if (!data.password) {
-          tempPassword =
-            'Teacher@' + Math.random().toString(36).substring(2, 8).toUpperCase();
+          tempPassword = `Teacher@${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
         }
 
         const user = await User.create(
@@ -124,11 +125,12 @@ export class TeacherService {
     if (filters.subject) query.subjects = filters.subject;
 
     if (filters.search) {
+      const search = escapeRegex(filters.search);
       query.$or = [
-        { firstName: { $regex: filters.search, $options: 'i' } },
-        { lastName: { $regex: filters.search, $options: 'i' } },
-        { employeeId: { $regex: filters.search, $options: 'i' } },
-        { email: { $regex: filters.search, $options: 'i' } },
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { employeeId: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -187,7 +189,7 @@ export class TeacherService {
     }
 
     if (data.email || data.phone || data.firstName || data.lastName) {
-      await User.findByIdAndUpdate(teacher.userId, {
+      await User.findOneAndUpdate({ _id: teacher.userId, tenantId }, {
         $set: {
           email: data.email,
           phone: data.phone,
@@ -223,20 +225,20 @@ export class TeacherService {
       throw new AppError('Teacher not found', 404);
     }
 
-    await User.findByIdAndUpdate(teacher.userId, {
+    await User.findOneAndUpdate({ _id: teacher.userId, tenantId }, {
       $set: { status: 'inactive' },
     });
 
     return teacher;
   }
 
-  static async assignSubject(teacherId: string, subjectData: any) {
+  static async assignSubject(teacherId: string, tenantId: string, subjectData: any) {
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       throw new AppError('Invalid teacher ID', 400);
     }
 
-    const teacher = await Teacher.findByIdAndUpdate(
-      teacherId,
+    const teacher = await Teacher.findOneAndUpdate(
+      { _id: teacherId, tenantId },
       {
         $push: {
           subjects: subjectData.subjectId,
@@ -258,13 +260,13 @@ export class TeacherService {
     return teacher;
   }
 
-  static async removeSubject(teacherId: string, subjectId: string, sectionId: string) {
+  static async removeSubject(teacherId: string, tenantId: string, subjectId: string, sectionId: string) {
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       throw new AppError('Invalid teacher ID', 400);
     }
 
-    const teacher = await Teacher.findByIdAndUpdate(
-      teacherId,
+    const teacher = await Teacher.findOneAndUpdate(
+      { _id: teacherId, tenantId },
       {
         $pull: {
           subjects: subjectId,
@@ -281,12 +283,12 @@ export class TeacherService {
     return teacher;
   }
 
-  static async getTeacherSchedule(teacherId: string, date?: Date) {
+  static async getTeacherSchedule(teacherId: string, tenantId: string, date?: Date) {
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       throw new AppError('Invalid teacher ID', 400);
     }
 
-    const teacher = await Teacher.findById(teacherId);
+    const teacher = await Teacher.findOne({ _id: teacherId, tenantId });
     if (!teacher) {
       throw new AppError('Teacher not found', 404);
     }

@@ -50,8 +50,12 @@ export async function attachRefs<T extends Record<string, any>>(
       }
 
       const { model, fields } = refMap[key];
+      const tenantId = typeof docs[0].tenantId === 'string' ? docs[0].tenantId : undefined;
+      const query = tenantId
+        ? { _id: { $in: ids }, tenantId }
+        : { _id: { $in: ids } };
       const found = await model
-        .find({ _id: { $in: ids } })
+        .find(query)
         .select(fields)
         .lean();
 

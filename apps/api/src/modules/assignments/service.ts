@@ -4,6 +4,8 @@ import { Student } from '../../models/Student';
 import { Subject } from '../../models/Subject';
 import { Section } from '../../models/Section';
 import { Teacher } from '../../models/Teacher';
+import { Attendance } from '../../models/Attendance';
+import { escapeRegex } from '../../utils/search';
 import { AppError } from '../../middleware/error-handler';
 import { attachRefs } from '../../utils/attach-refs';
 
@@ -23,6 +25,14 @@ export class AssignmentService {
   // ============ Assignments ============
 
   static async createAssignment(tenantId: string, data: any) {
+    const [subject, section, teacher] = await Promise.all([
+      Subject.findOne({ _id: data.subjectId, tenantId }).select('_id'),
+      Section.findOne({ _id: data.sectionId, tenantId }).select('_id'),
+      Teacher.findOne({ _id: data.teacherId, tenantId, isDeleted: false }).select('_id'),
+    ]);
+    if (!subject || !section || !teacher) {
+      throw new AppError('Assignment references must belong to the active school', 400);
+    }
     const assignment = await Assignment.create({
       tenantId,
       ...data,
@@ -55,9 +65,10 @@ export class AssignmentService {
     if (filters.type) query.type = filters.type;
 
     if (filters.search) {
+      const search = escapeRegex(filters.search);
       query.$or = [
-        { title: { $regex: filters.search, $options: 'i' } },
-        { description: { $regex: filters.search, $options: 'i' } },
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -109,7 +120,7 @@ export class AssignmentService {
       data.status = 'published';
     }
 
-    const assignment = await Assignment.findByIdAndUpdate(
+    const assignment = await Assignment.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },
@@ -139,7 +150,36 @@ export class AssignmentService {
 
   // ============ Submissions ============
 
-  static async submitAssignment(tenantId: string, data: any) {
+  static async submitAssignment(
+    tenantId: string,
+    data: any,
+    actor?: { userId: string; role: string },
+  ) {
+    if (!mongoose.Types.ObjectId.isValid(data.studentId)) {
+      throw new AppError('Invalid student ID', 400);
+    }
+
+    const targetStudent = await Student.findOne({
+      _id: data.studentId,
+      tenantId,
+      isDeleted: false,
+      status: 'active',
+    }).select('_id userId guardians');
+    if (!targetStudent) {
+      throw new AppError('Student not found', 404);
+    }
+    if (actor?.role === 'student' && targetStudent.userId?.toString() !== actor.userId) {
+      throw new AppError('Students may only submit their own assignments', 403);
+    }
+    if (
+      actor?.role === 'guardian' &&
+      !(targetStudent.guardians || []).some(
+        (guardian: any) => guardian.userId?.toString() === actor.userId,
+      )
+    ) {
+      throw new AppError('You are not linked to this student', 403);
+    }
+
     const assignment = await Assignment.findOne({
       _id: data.assignmentId,
       tenantId,
@@ -178,6 +218,7 @@ export class AssignmentService {
     filters: {
       assignmentId?: string;
       studentId?: string;
+      studentIds?: string[];
       status?: string;
       page?: number;
       limit?: number;
@@ -187,6 +228,7 @@ export class AssignmentService {
 
     if (filters.assignmentId) query.assignmentId = filters.assignmentId;
     if (filters.studentId) query.studentId = filters.studentId;
+    if (filters.studentIds) query.studentId = { $in: filters.studentIds };
     if (filters.status) query.status = filters.status;
 
     const page = filters.page || 1;
@@ -213,7 +255,11 @@ export class AssignmentService {
     };
   }
 
-  static async getSubmissionById(id: string, tenantId: string) {
+  static async getSubmissionById(
+    id: string,
+    tenantId: string,
+    actor?: { userId: string; role: string },
+  ) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid submission ID', 400);
     }
@@ -221,6 +267,22 @@ export class AssignmentService {
     const raw = await Submission.findOne({ _id: id, tenantId }).lean();
     if (!raw) {
       throw new AppError('Submission not found', 404);
+    }
+    if (actor?.role === 'student') {
+      const student = await Student.findOne({
+        _id: raw.studentId,
+        userId: actor.userId,
+        tenantId,
+      }).select('_id');
+      if (!student) throw new AppError('You may only view your own submission', 403);
+    }
+    if (actor?.role === 'guardian') {
+      const student = await Student.findOne({
+        _id: raw.studentId,
+        tenantId,
+        'guardians.userId': actor.userId,
+      }).select('_id');
+      if (!student) throw new AppError('You are not linked to this student', 403);
     }
 
     const [submission] = await attachRefs([raw], submissionRefs);
@@ -434,7 +496,22 @@ export class AssignmentService {
     const averageGradePoint =
       subjects.length > 0 ? totalGradePoint / subjects.length : 0;
 
-    const attendance = 0; // TODO: integrate with attendance service
+    const [attendanceTotal, attendancePresent] = await Promise.all([
+      Attendance.countDocuments({
+        tenantId,
+        entityId: data.studentId,
+        type: 'student',
+        status: { $in: ['present', 'absent', 'late', 'half_day'] },
+      }),
+      Attendance.countDocuments({
+        tenantId,
+        entityId: data.studentId,
+        type: 'student',
+        status: { $in: ['present', 'late', 'half_day'] },
+      }),
+    ]);
+    const attendance =
+      attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
 
     let reportCard = await ReportCard.findOne({
       tenantId,
@@ -540,7 +617,7 @@ export class AssignmentService {
       throw new AppError('Invalid report card ID', 400);
     }
 
-    const reportCard = await ReportCard.findByIdAndUpdate(
+    const reportCard = await ReportCard.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: { status: 'published' } },
       { new: true },

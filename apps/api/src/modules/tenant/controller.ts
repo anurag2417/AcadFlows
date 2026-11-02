@@ -321,12 +321,9 @@ export class TenantController {
         } else {
           tenant = await TenantService.getBySlug(tenantId);
         }
-      } catch {
-        return res.status(404).json({
-          success: false,
-          error: 'Tenant not found',
-          data: null,
-        });
+      } catch (error) {
+        next(error);
+        return;
       }
 
       if (!tenant) {

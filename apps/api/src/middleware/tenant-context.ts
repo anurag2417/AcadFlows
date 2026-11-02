@@ -10,7 +10,7 @@ export interface TenantRequest extends Request {
 
 /* ─────────────────────────────────────────────────────────────
    In-memory tenant cache
-   
+
    Keyed by the resolution "source" (subdomain slug, header ID, etc.),
    storing { tenant, expiresAt }. Avoids hitting MongoDB on every
    request in a multi-tenant app where the same school is hit
@@ -200,7 +200,7 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
     next();
   } catch (error) {
     console.error('Tenant context error:', error);
-    next();
+    next(error);
   }
 }
 

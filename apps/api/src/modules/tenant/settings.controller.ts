@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Tenant } from '../../models/Tenant';
 import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/error-handler';
+import { assertImageFile } from '../../utils/upload-validation';
 import { z } from 'zod';
 
 const gradingBandSchema = z.object({
@@ -180,6 +181,7 @@ export class TenantSettingsController {
       if (!file.mimetype.startsWith('image/')) {
         throw new AppError('Only image files are allowed', 400);
       }
+      assertImageFile(file);
 
       if (file.size > 2 * 1024 * 1024) {
         throw new AppError('Logo must be under 2 MB', 400);

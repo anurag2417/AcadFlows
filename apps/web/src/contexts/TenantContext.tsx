@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { getTenantSlugFromURL, getTenantInfo, getCurrentTenant } from '../lib/tenant';
+import { hasAccessToken } from '../lib/api';
 import type { TenantInfo } from '../lib/tenant';
 
 interface TenantContextType {
@@ -39,7 +40,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
       // 2. Only attempt /tenants/current if the user has a session.
       //    Otherwise it 404s on every public page load, which is noise.
-      const hasToken = !!localStorage.getItem('accessToken');
+      const hasToken = hasAccessToken();
       if (!hasToken) {
         setIsLoading(false);
         return;

@@ -14,7 +14,6 @@ const router: Router = Router();
 
 router.post('/verify-rollno', StudentController.verifyRollNo);
 router.post('/verify-identity', StudentIdentityController.verifyIdentity);
-router.get('/tenant/:tenantId', StudentController.getStudentsByTenant);
 
 /* ─────────────────────────────────────────────────────────────
    Protected routes — everything below requires auth + tenant

@@ -5,6 +5,7 @@ import { AuthRequest } from '../../middleware/auth';
 import { Teacher } from '../../models/Teacher';
 import { Student } from '../../models/Student';
 import { AppError } from '../../middleware/error-handler';
+import { parsePagination } from '../../utils/pagination';
 
 // Validation Schemas
 const createAssignmentSchema = z.object({
@@ -99,7 +100,8 @@ export class AssignmentController {
   static async getAssignments(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { sectionId, subjectId, teacherId, status, type, page, limit } = req.query;
+      const { sectionId, subjectId, teacherId, status, type, page: rawPage, limit: rawLimit } = req.query;
+      const pagination = parsePagination(rawPage, rawLimit);
 
       const result = await AssignmentService.getAssignments(
         authReq.user.tenantId,
@@ -109,8 +111,7 @@ export class AssignmentController {
           teacherId: teacherId as string,
           status: status as string,
           type: type as string,
-          page: page ? parseInt(page as string) : 1,
-          limit: limit ? parseInt(limit as string) : 20,
+          ...pagination,
         }
       );
 
@@ -220,7 +221,8 @@ export class AssignmentController {
         {
           ...validated,
           studentId,
-        }
+        },
+        { userId: authReq.user.id, role: authReq.user.role },
       );
 
       res.status(201).json({
@@ -236,16 +238,36 @@ export class AssignmentController {
   static async getSubmissions(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { assignmentId, studentId, status, page, limit } = req.query;
+      const { assignmentId, studentId, status, page: rawPage, limit: rawLimit } = req.query;
+      const pagination = parsePagination(rawPage, rawLimit);
+      let scopedStudentId = studentId as string;
+      if (authReq.user.role === 'student') {
+        const student = await Student.findOne({
+          userId: authReq.user.id,
+          tenantId: authReq.user.tenantId,
+          isDeleted: false,
+        }).select('_id');
+        if (!student) throw new AppError('Student profile not found', 404);
+        scopedStudentId = student._id.toString();
+      }
+      let studentIds: string[] | undefined;
+      if (authReq.user.role === 'guardian') {
+        const linked = await Student.find({
+          tenantId: authReq.user.tenantId,
+          'guardians.userId': authReq.user.id,
+          isDeleted: false,
+        }).select('_id');
+        studentIds = linked.map(student => student._id.toString());
+      }
 
       const result = await AssignmentService.getSubmissions(
         authReq.user.tenantId,
         {
           assignmentId: assignmentId as string,
-          studentId: studentId as string,
+          studentId: scopedStudentId,
+          studentIds,
           status: status as string,
-          page: page ? parseInt(page as string) : 1,
-          limit: limit ? parseInt(limit as string) : 20,
+          ...pagination,
         }
       );
 
@@ -261,7 +283,12 @@ export class AssignmentController {
   static async getSubmissionById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const submission = await AssignmentService.getSubmissionById(id, (req as AuthRequest).user.tenantId);
+      const authReq = req as AuthRequest;
+      const submission = await AssignmentService.getSubmissionById(
+        id,
+        authReq.user.tenantId,
+        { userId: authReq.user.id, role: authReq.user.role },
+      );
 
       res.json({
         success: true,
@@ -300,6 +327,16 @@ export class AssignmentController {
     try {
       const authReq = req as AuthRequest;
       const { studentId, academicYearId } = req.params;
+      if (authReq.user.role === 'student') {
+        const student = await Student.findOne({
+          userId: authReq.user.id,
+          tenantId: authReq.user.tenantId,
+          isDeleted: false,
+        }).select('_id');
+        if (!student || student._id.toString() !== studentId) {
+          throw new AppError('You may only view your own gradebook', 403);
+        }
+      }
 
       const gradebook = await AssignmentService.getGradebook(
         authReq.user.tenantId,
@@ -320,6 +357,16 @@ export class AssignmentController {
     try {
       const authReq = req as AuthRequest;
       const { studentId, academicYearId } = req.params;
+      if (authReq.user.role === 'student') {
+        const student = await Student.findOne({
+          userId: authReq.user.id,
+          tenantId: authReq.user.tenantId,
+          isDeleted: false,
+        }).select('_id');
+        if (!student || student._id.toString() !== studentId) {
+          throw new AppError('You may only view your own progress', 403);
+        }
+      }
 
       const progress = await AssignmentService.getStudentProgress(
         authReq.user.tenantId,
@@ -364,17 +411,27 @@ export class AssignmentController {
   static async getReportCards(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { studentId, academicYearId, term, status, page, limit } = req.query;
+      const { studentId, academicYearId, term, status, page: rawPage, limit: rawLimit } = req.query;
+      const pagination = parsePagination(rawPage, rawLimit);
+      let scopedStudentId = studentId as string;
+      if (authReq.user.role === 'student') {
+        const student = await Student.findOne({
+          userId: authReq.user.id,
+          tenantId: authReq.user.tenantId,
+          isDeleted: false,
+        }).select('_id');
+        if (!student) throw new AppError('Student profile not found', 404);
+        scopedStudentId = student._id.toString();
+      }
 
       const result = await AssignmentService.getReportCards(
         authReq.user.tenantId,
         {
-          studentId: studentId as string,
+          studentId: scopedStudentId,
           academicYearId: academicYearId as string,
           term: term as string,
           status: status as string,
-          page: page ? parseInt(page as string) : 1,
-          limit: limit ? parseInt(limit as string) : 20,
+          ...pagination,
         }
       );
 

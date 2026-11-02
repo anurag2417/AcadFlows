@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 import { Timetable, TimetableEntry, Room, TimeSlot } from '../../models/Timetable';
+import { Subject } from '../../models/Subject';
+import { Section } from '../../models/Section';
+import { Grade } from '../../models/Grade';
+import { Teacher } from '../../models/Teacher';
 import { AppError } from '../../middleware/error-handler';
 
 export class TimetableService {
@@ -85,7 +89,7 @@ export class TimetableService {
       throw new AppError('Invalid timetable ID', 400);
     }
 
-    const timetable = await Timetable.findByIdAndUpdate(
+    const timetable = await Timetable.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
@@ -126,6 +130,16 @@ export class TimetableService {
 
     // Validate time format
     this.validateTime(data.startTime, data.endTime);
+    const [subject, section, grade, teacher, room] = await Promise.all([
+      Subject.findOne({ _id: data.subjectId, tenantId }).select('_id'),
+      Section.findOne({ _id: data.sectionId, tenantId }).select('_id'),
+      Grade.findOne({ _id: data.gradeId, tenantId }).select('_id'),
+      Teacher.findOne({ _id: data.teacherId, tenantId, isDeleted: false }).select('_id'),
+      data.roomId ? Room.findOne({ _id: data.roomId, tenantId }).select('_id') : null,
+    ]);
+    if (!subject || !section || !grade || !teacher || (data.roomId && !room)) {
+      throw new AppError('Timetable references must belong to the active school', 400);
+    }
 
     // Check for conflicts
     const conflicts = await this.checkConflicts(tenantId, {
@@ -157,15 +171,32 @@ export class TimetableService {
       throw new AppError('Invalid entry ID', 400);
     }
 
+    const currentEntry = await TimetableEntry.findOne({ _id: entryId, tenantId }).lean();
+    if (!currentEntry) {
+      throw new AppError('Timetable entry not found', 404);
+    }
+    const merged = { ...currentEntry, ...data };
+    this.validateTime(merged.startTime, merged.endTime);
+    const [subject, section, grade, teacher, room] = await Promise.all([
+      Subject.findOne({ _id: merged.subjectId, tenantId }).select('_id'),
+      Section.findOne({ _id: merged.sectionId, tenantId }).select('_id'),
+      Grade.findOne({ _id: merged.gradeId, tenantId }).select('_id'),
+      Teacher.findOne({ _id: merged.teacherId, tenantId, isDeleted: false }).select('_id'),
+      merged.roomId ? Room.findOne({ _id: merged.roomId, tenantId }).select('_id') : null,
+    ]);
+    if (!subject || !section || !grade || !teacher || (merged.roomId && !room)) {
+      throw new AppError('Timetable references must belong to the active school', 400);
+    }
+
     // Check for conflicts excluding current entry
     if (data.startTime || data.endTime || data.teacherId || data.sectionId || data.roomId || data.dayOfWeek) {
       const conflicts = await this.checkConflicts(tenantId, {
-        teacherId: data.teacherId,
-        sectionId: data.sectionId,
-        roomId: data.roomId,
-        dayOfWeek: data.dayOfWeek,
-        startTime: data.startTime,
-        endTime: data.endTime,
+        teacherId: merged.teacherId,
+        sectionId: merged.sectionId,
+        roomId: merged.roomId,
+        dayOfWeek: merged.dayOfWeek,
+        startTime: merged.startTime,
+        endTime: merged.endTime,
         excludeEntryId: entryId,
       });
 
@@ -219,12 +250,8 @@ export class TimetableService {
     const query: any = {
       tenantId,
       dayOfWeek: data.dayOfWeek,
-      $or: [
-        { startTime: { $lt: data.endTime, $gte: data.startTime } },
-        { endTime: { $gt: data.startTime, $lte: data.endTime } },
-        { startTime: { $gte: data.startTime, $lte: data.endTime } },
-        { endTime: { $gte: data.startTime, $lte: data.endTime } },
-      ],
+      startTime: { $lt: data.endTime },
+      endTime: { $gt: data.startTime },
     };
 
     if (data.excludeEntryId) {
@@ -373,7 +400,7 @@ export class TimetableService {
       throw new AppError('Invalid time slot ID', 400);
     }
 
-    const timeSlot = await TimeSlot.findByIdAndUpdate(
+    const timeSlot = await TimeSlot.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
@@ -463,7 +490,7 @@ export class TimetableService {
       throw new AppError('Invalid room ID', 400);
     }
 
-    const room = await Room.findByIdAndUpdate(
+    const room = await Room.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }

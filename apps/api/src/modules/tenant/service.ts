@@ -423,7 +423,7 @@ export class TenantService {
       };
     } catch (error) {
       console.error('Error validating school code:', error);
-      return { valid: false };
+      throw error;
     }
   }
 

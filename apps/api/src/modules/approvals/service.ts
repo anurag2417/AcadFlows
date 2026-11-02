@@ -206,8 +206,8 @@ export class ApprovalsService {
     await teacher.save();
 
     // Approve linked user
-    const user = await User.findByIdAndUpdate(
-      teacher.userId,
+    const user = await User.findOneAndUpdate(
+      { _id: teacher.userId, tenantId },
       {
         $set: {
           status: 'active',
@@ -266,8 +266,8 @@ export class ApprovalsService {
     teacher.rejectionReason = reason;
     await teacher.save();
 
-    const user = await User.findByIdAndUpdate(
-      teacher.userId,
+    const user = await User.findOneAndUpdate(
+      { _id: teacher.userId, tenantId },
       {
         $set: {
           status: 'rejected',
@@ -332,8 +332,8 @@ export class ApprovalsService {
     student.approvedAt = new Date();
     await student.save();
 
-    const user = await User.findByIdAndUpdate(
-      student.userId,
+    const user = await User.findOneAndUpdate(
+      { _id: student.userId, tenantId },
       {
         $set: {
           status: 'active',
@@ -391,8 +391,8 @@ export class ApprovalsService {
     student.rejectionReason = reason;
     await student.save();
 
-    const user = await User.findByIdAndUpdate(
-      student.userId,
+    const user = await User.findOneAndUpdate(
+      { _id: student.userId, tenantId },
       {
         $set: {
           status: 'rejected',

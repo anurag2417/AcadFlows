@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { AuthRequest } from '../../middleware/auth';
 
 // Validation Schemas
-const createTimetableSchema = z.object({
+const createTimetableBaseSchema = z.object({
   academicYearId: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
@@ -12,8 +12,22 @@ const createTimetableSchema = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
 });
+const createTimetableSchema = createTimetableBaseSchema.refine(data => data.endDate > data.startDate, {
+  message: 'End date must be after start date',
+  path: ['endDate'],
+});
 
-const addEntrySchema = z.object({
+const timeRange = <T extends z.ZodTypeAny>(schema: T) =>
+  schema.refine((data: any) => {
+    const [startHour, startMinute] = data.startTime.split(':').map(Number);
+    const [endHour, endMinute] = data.endTime.split(':').map(Number);
+    return endHour * 60 + endMinute > startHour * 60 + startMinute;
+  }, {
+    message: 'End time must be after start time',
+    path: ['endTime'],
+  });
+
+const addEntryBaseSchema = z.object({
   dayOfWeek: z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
@@ -28,6 +42,7 @@ const addEntrySchema = z.object({
   isOptional: z.boolean().default(false),
   notes: z.string().optional(),
 });
+const addEntrySchema = timeRange(addEntryBaseSchema);
 
 const createRoomSchema = z.object({
   name: z.string().min(1),
@@ -39,13 +54,14 @@ const createRoomSchema = z.object({
   facilities: z.array(z.string()).optional(),
 });
 
-const createTimeSlotSchema = z.object({
+const createTimeSlotBaseSchema = z.object({
   dayOfWeek: z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   type: z.enum(['class', 'break', 'assembly', 'other']).default('class'),
   name: z.string().optional(),
 });
+const createTimeSlotSchema = timeRange(createTimeSlotBaseSchema);
 
 export class TimetableController {
   // ============ Timetable Management ============
@@ -115,7 +131,7 @@ export class TimetableController {
   static async updateTimetable(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const validated = createTimetableSchema.partial().parse(req.body);
+      const validated = createTimetableBaseSchema.partial().parse(req.body);
 
       const timetable = await TimetableService.updateTimetable(id, (req as AuthRequest).user.tenantId, validated);
 
@@ -171,7 +187,7 @@ export class TimetableController {
     try {
       const authReq = req as AuthRequest;
       const { entryId } = req.params;
-      const validated = addEntrySchema.partial().parse(req.body);
+      const validated = addEntryBaseSchema.partial().parse(req.body);
 
       const entry = await TimetableService.updateEntry(
         authReq.user.tenantId,
@@ -315,7 +331,7 @@ export class TimetableController {
   static async updateTimeSlot(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const validated = createTimeSlotSchema.partial().parse(req.body);
+      const validated = createTimeSlotBaseSchema.partial().parse(req.body);
 
       const timeSlot = await TimetableService.updateTimeSlot(id, (req as AuthRequest).user.tenantId, validated);
 

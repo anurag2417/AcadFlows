@@ -163,7 +163,7 @@ async function safeAggregate<T>(
       `[dashboard] aggregate failed on ${model.modelName} — returning fallback`,
       err instanceof Error ? err.message : err,
     );
-    return fallback;
+    throw err;
   }
 }
 
@@ -178,7 +178,7 @@ async function safeCount(
       `[dashboard] countDocuments failed on ${model.modelName} — returning 0`,
       err instanceof Error ? err.message : err,
     );
-    return 0;
+    throw err;
   }
 }
 

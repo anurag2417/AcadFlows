@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { UserService } from './service';
 import { z } from 'zod';
 import { AuthRequest } from '../../middleware/auth';
+import { assertImageFile } from '../../utils/upload-validation';
 
 const updateProfileSchema = z.object({
   firstName: z.string().min(1).optional(),
@@ -111,6 +112,7 @@ export class UserController {
       if (!file) {
         throw new Error('No file uploaded');
       }
+      assertImageFile(file);
 
       const imageUrl = await UserService.uploadProfilePicture(authReq.user.id, file);
 

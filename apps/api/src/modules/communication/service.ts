@@ -4,6 +4,7 @@ import { User } from '../../models/User';
 import { Student } from '../../models/Student';
 import { Teacher } from '../../models/Teacher';
 import { AppError } from '../../middleware/error-handler';
+import { escapeRegex } from '../../utils/search';
 
 /* ─────────────────────────────────────────────────────────────
    Query wrappers
@@ -291,7 +292,7 @@ export class AnnouncementService {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const announcement = await Announcement.findByIdAndUpdate(
+    const announcement = await Announcement.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },
@@ -411,15 +412,17 @@ export class AnnouncementService {
         isPublished: true,
         $or: [{ expiresAt: { $gte: new Date() } }, { expiresAt: { $exists: false } }],
       }).lean();
-    } catch {
-      return 0;
+    } catch (err) {
+      console.error('[announcements] unread announcement query failed', err);
+      throw err;
     }
 
     let user: any = null;
     try {
       user = await User.findOne({ _id: userId, tenantId }).lean();
-    } catch {
-      return 0;
+    } catch (err) {
+      console.error('[announcements] unread user query failed', err);
+      throw err;
     }
     if (!user) return 0;
 
@@ -472,6 +475,20 @@ export class MessagingService {
     });
 
     if (!conversation) {
+      const [sender, recipient] = await Promise.all([
+        User.findOne({ _id: data.senderId, tenantId, status: 'active' }).select(
+          '_id role',
+        ),
+        User.findOne({ _id: data.recipientId, tenantId, status: 'active' }).select(
+          '_id role',
+        ),
+      ]);
+      if (!sender || sender._id.toString() !== data.senderId) {
+        throw new AppError('Sender is not an active tenant user', 403);
+      }
+      if (!recipient || recipient.role !== data.recipientType) {
+        throw new AppError('Recipient is not an active tenant user', 404);
+      }
       conversation = await Conversation.create({
         tenantId,
         participants: [
@@ -480,6 +497,15 @@ export class MessagingService {
         ],
         isActive: true,
       });
+    } else {
+      const recipient = await User.findOne({
+        _id: data.recipientId,
+        tenantId,
+        status: 'active',
+      }).select('_id role');
+      if (!recipient || recipient.role !== data.recipientType) {
+        throw new AppError('Recipient is not an active tenant user', 404);
+      }
     }
 
     const message = await Message.create({
@@ -604,7 +630,8 @@ export class MessagingService {
         }),
       ]);
     } catch (err) {
-      console.warn('[messages] conversations query failed', err);
+      console.error('[messages] conversations query failed', err);
+      throw err;
     }
 
     const conversationsWithDetails = await Promise.all(
@@ -624,8 +651,9 @@ export class MessagingService {
             conversationId: conv._id,
             isDeleted: false,
           }).sort({ createdAt: -1 });
-        } catch {
-          /* ignore */
+        } catch (err) {
+          console.error('[messages] last-message query failed', err);
+          throw err;
         }
 
         return {
@@ -702,7 +730,8 @@ export class MessagingService {
         }),
       ]);
     } catch (err) {
-      console.warn('[messages] messages query failed', err);
+      console.error('[messages] messages query failed', err);
+      throw err;
     }
 
     return {
@@ -754,10 +783,11 @@ export class MessagingService {
     }
 
     if (search) {
+      const escapedSearch = escapeRegex(search);
       query.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
+        { firstName: { $regex: escapedSearch, $options: 'i' } },
+        { lastName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
       ];
     }
 
@@ -768,8 +798,8 @@ export class MessagingService {
         .limit(50)
         .lean();
     } catch (err) {
-      console.warn('[messages] listRecipients query failed', err);
-      users = [];
+      console.error('[messages] listRecipients query failed', err);
+      throw err;
     }
 
     return users.map(u => ({

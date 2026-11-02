@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import { Student } from '../../models/Student';
 import { User } from '../../models/User';
 import { Tenant } from '../../models/Tenant';
 import { AcademicYear } from '../../models/AcademicYear';
 import { AppError } from '../../middleware/error-handler';
+import { escapeRegex } from '../../utils/search';
 
 export class StudentService {
   /**
@@ -34,8 +36,6 @@ export class StudentService {
       throw new AppError('Student not found with this roll number', 404);
     }
 
-    const hasGuardian = student.guardians.some(g => !!g.userId);
-
     return {
       student: {
         id: student._id.toString(),
@@ -44,7 +44,6 @@ export class StudentService {
         grade: student.grade,
         section: student.section || '',
         rollNo: student.rollNo,
-        hasGuardian,
       },
     };
   }
@@ -72,8 +71,7 @@ export class StudentService {
       if (!userId) {
         // Auto-create a User account for the student.
         if (!data.password) {
-          tempPassword =
-            'Student@' + Math.random().toString(36).substring(2, 8).toUpperCase();
+          tempPassword = `Student@${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
         }
 
         const user = await User.create(
@@ -187,11 +185,12 @@ export class StudentService {
     if (filters.status) query.status = filters.status;
 
     if (filters.search) {
+      const search = escapeRegex(filters.search);
       query.$or = [
-        { firstName: { $regex: filters.search, $options: 'i' } },
-        { lastName: { $regex: filters.search, $options: 'i' } },
-        { admissionNo: { $regex: filters.search, $options: 'i' } },
-        { rollNo: { $regex: filters.search, $options: 'i' } },
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { admissionNo: { $regex: search, $options: 'i' } },
+        { rollNo: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -217,14 +216,14 @@ export class StudentService {
     };
   }
 
-  static async getStudentById(studentId: string, tenantId?: string) {
+  static async getStudentById(studentId: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       throw new AppError('Invalid student ID', 400);
     }
 
     const student = await Student.findOne({
       _id: studentId,
-      ...(tenantId ? { tenantId } : {}),
+      tenantId,
     }).populate(
       'userId',
       'email phone profilePicture',
@@ -257,7 +256,7 @@ export class StudentService {
       }
     }
 
-    const student = await Student.findByIdAndUpdate(
+    const student = await Student.findOneAndUpdate(
       { _id: studentId, tenantId },
       { $set: data },
       { new: true, runValidators: true },
@@ -268,7 +267,7 @@ export class StudentService {
     }
 
     if (data.email || data.phone || data.firstName || data.lastName) {
-      await User.findByIdAndUpdate(student.userId, {
+      await User.findOneAndUpdate({ _id: student.userId, tenantId }, {
         $set: {
           email: data.email,
           phone: data.phone,
@@ -288,7 +287,7 @@ export class StudentService {
       throw new AppError('Invalid student ID', 400);
     }
 
-    const student = await Student.findByIdAndUpdate(
+    const student = await Student.findOneAndUpdate(
       { _id: studentId, tenantId },
       {
         $set: {
@@ -304,7 +303,7 @@ export class StudentService {
       throw new AppError('Student not found', 404);
     }
 
-    await User.findByIdAndUpdate(student.userId, {
+    await User.findOneAndUpdate({ _id: student.userId, tenantId }, {
       $set: { status: 'inactive' },
     });
 
@@ -356,7 +355,7 @@ export class StudentService {
       throw new AppError('Invalid student ID', 400);
     }
 
-    const student = await Student.findByIdAndUpdate(
+    const student = await Student.findOneAndUpdate(
       { _id: studentId, tenantId },
       {
         $set: {
