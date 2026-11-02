@@ -73,6 +73,15 @@ export class AttendanceService {
         throw new AppError('No students found in this section', 404);
       }
 
+      const studentIds = students.map(s => s._id.toString());
+      const recordedIds = data.records.map(r => r.studentId);
+      if (
+        new Set(recordedIds).size !== recordedIds.length ||
+        recordedIds.some(id => !studentIds.includes(id))
+      ) {
+        throw new AppError('Attendance records contain invalid or duplicate students', 400);
+      }
+
       // Build attendance records from provided data
       const attendanceRecords = data.records.map(record => ({
         tenantId,
@@ -90,9 +99,6 @@ export class AttendanceService {
       }));
 
       // Auto-mark absent for unrecorded students
-      const studentIds = students.map(s => s._id.toString());
-      const recordedIds = data.records.map(r => r.studentId);
-
       for (const studentId of studentIds) {
         if (!recordedIds.includes(studentId)) {
           attendanceRecords.push({
@@ -202,6 +208,15 @@ export class AttendanceService {
       throw new AppError('No active teachers found', 404);
     }
 
+    const teacherIds = teachers.map(t => t._id.toString());
+    const recordedIds = data.records.map(r => r.teacherId);
+    if (
+      new Set(recordedIds).size !== recordedIds.length ||
+      recordedIds.some(id => !teacherIds.includes(id))
+    ) {
+      throw new AppError('Attendance records contain invalid or duplicate teachers', 400);
+    }
+
     const attendanceRecords = data.records.map(record => ({
       tenantId,
       date,
@@ -218,9 +233,6 @@ export class AttendanceService {
     }));
 
     // Auto-mark absent for unrecorded teachers
-    const teacherIds = teachers.map(t => t._id.toString());
-    const recordedIds = data.records.map(r => r.teacherId);
-
     for (const teacherId of teacherIds) {
       if (!recordedIds.includes(teacherId)) {
         attendanceRecords.push({

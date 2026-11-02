@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/api';
 import {
@@ -378,7 +379,7 @@ function LeaveActionModal({
     'lastName',
   )}`.trim();
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (action === 'rejected' && !rejectionReason.trim()) {

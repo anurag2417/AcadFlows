@@ -155,7 +155,7 @@ export class AcademicYearController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const academicYear = await AcademicYearService.getById(req.params.id);
+      const academicYear = await AcademicYearService.getById(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, data: academicYear });
     } catch (error) {
       next(error);
@@ -165,7 +165,7 @@ export class AcademicYearController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = academicYearSchema.partial().parse(req.body);
-      const academicYear = await AcademicYearService.update(req.params.id, validated);
+      const academicYear = await AcademicYearService.update(req.params.id, (req as AuthRequest).user.tenantId, validated);
       res.json({
         success: true,
         data: academicYear,
@@ -178,7 +178,7 @@ export class AcademicYearController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await AcademicYearService.delete(req.params.id);
+      await AcademicYearService.delete(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, message: 'Academic year deleted successfully' });
     } catch (error) {
       next(error);
@@ -250,7 +250,7 @@ export class GradeController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const grade = await GradeService.getById(req.params.id);
+      const grade = await GradeService.getById(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, data: grade });
     } catch (error) {
       next(error);
@@ -260,7 +260,7 @@ export class GradeController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = gradeSchema.partial().parse(req.body);
-      const grade = await GradeService.update(req.params.id, validated);
+      const grade = await GradeService.update(req.params.id, (req as AuthRequest).user.tenantId, validated);
       res.json({
         success: true,
         data: grade,
@@ -273,7 +273,7 @@ export class GradeController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await GradeService.delete(req.params.id);
+      await GradeService.delete(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, message: 'Grade deleted successfully' });
     } catch (error) {
       next(error);
@@ -333,7 +333,7 @@ export class SectionController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const section = await SectionService.getById(req.params.id);
+      const section = await SectionService.getById(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, data: section });
     } catch (error) {
       next(error);
@@ -343,7 +343,7 @@ export class SectionController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = sectionSchema.partial().parse(req.body);
-      const section = await SectionService.update(req.params.id, validated);
+      const section = await SectionService.update(req.params.id, (req as AuthRequest).user.tenantId, validated);
       res.json({
         success: true,
         data: section,
@@ -356,7 +356,7 @@ export class SectionController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await SectionService.delete(req.params.id);
+      await SectionService.delete(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, message: 'Section deleted successfully' });
     } catch (error) {
       next(error);
@@ -403,7 +403,7 @@ export class SubjectController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const subject = await SubjectService.getById(req.params.id);
+      const subject = await SubjectService.getById(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, data: subject });
     } catch (error) {
       next(error);
@@ -413,7 +413,7 @@ export class SubjectController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = subjectSchema.partial().parse(req.body);
-      const subject = await SubjectService.update(req.params.id, validated);
+      const subject = await SubjectService.update(req.params.id, (req as AuthRequest).user.tenantId, validated);
       res.json({
         success: true,
         data: subject,
@@ -426,7 +426,7 @@ export class SubjectController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await SubjectService.delete(req.params.id);
+      await SubjectService.delete(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, message: 'Subject deleted successfully' });
     } catch (error) {
       next(error);
@@ -474,7 +474,7 @@ export class TeacherSubjectController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const assignment = await TeacherSubjectService.getById(req.params.id);
+      const assignment = await TeacherSubjectService.getById(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, data: assignment });
     } catch (error) {
       next(error);
@@ -483,7 +483,7 @@ export class TeacherSubjectController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await TeacherSubjectService.delete(req.params.id);
+      await TeacherSubjectService.delete(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({
         success: true,
         message: 'Assignment removed successfully',
@@ -548,7 +548,7 @@ export class ScheduleController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const schedule = await ScheduleService.getById(req.params.id);
+      const schedule = await ScheduleService.getById(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({ success: true, data: schedule });
     } catch (error) {
       next(error);
@@ -558,7 +558,7 @@ export class ScheduleController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = scheduleSchema.partial().parse(req.body);
-      const schedule = await ScheduleService.update(req.params.id, validated);
+      const schedule = await ScheduleService.update(req.params.id, (req as AuthRequest).user.tenantId, validated);
       res.json({
         success: true,
         data: schedule,
@@ -571,7 +571,7 @@ export class ScheduleController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await ScheduleService.delete(req.params.id);
+      await ScheduleService.delete(req.params.id, (req as AuthRequest).user.tenantId);
       res.json({
         success: true,
         message: 'Schedule entry deleted successfully',

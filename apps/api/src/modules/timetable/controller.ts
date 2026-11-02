@@ -9,8 +9,8 @@ const createTimetableSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   type: z.enum(['regular', 'exam', 'holiday', 'special']).default('regular'),
-  startDate: z.string().transform(str => new Date(str)),
-  endDate: z.string().transform(str => new Date(str)),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
 });
 
 const addEntrySchema = z.object({
@@ -101,7 +101,7 @@ export class TimetableController {
   static async getTimetableById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const timetable = await TimetableService.getTimetableById(id);
+      const timetable = await TimetableService.getTimetableById(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -117,7 +117,7 @@ export class TimetableController {
       const { id } = req.params;
       const validated = createTimetableSchema.partial().parse(req.body);
 
-      const timetable = await TimetableService.updateTimetable(id, validated);
+      const timetable = await TimetableService.updateTimetable(id, (req as AuthRequest).user.tenantId, validated);
 
       res.json({
         success: true,
@@ -132,7 +132,7 @@ export class TimetableController {
   static async deleteTimetable(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await TimetableService.deleteTimetable(id);
+      await TimetableService.deleteTimetable(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -192,7 +192,7 @@ export class TimetableController {
   static async deleteEntry(req: Request, res: Response, next: NextFunction) {
     try {
       const { entryId } = req.params;
-      await TimetableService.deleteEntry(entryId);
+      await TimetableService.deleteEntry(entryId, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -317,7 +317,7 @@ export class TimetableController {
       const { id } = req.params;
       const validated = createTimeSlotSchema.partial().parse(req.body);
 
-      const timeSlot = await TimetableService.updateTimeSlot(id, validated);
+      const timeSlot = await TimetableService.updateTimeSlot(id, (req as AuthRequest).user.tenantId, validated);
 
       res.json({
         success: true,
@@ -332,7 +332,7 @@ export class TimetableController {
   static async deleteTimeSlot(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await TimetableService.deleteTimeSlot(id);
+      await TimetableService.deleteTimeSlot(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -392,7 +392,7 @@ export class TimetableController {
   static async getRoomById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const room = await TimetableService.getRoomById(id);
+      const room = await TimetableService.getRoomById(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -408,7 +408,7 @@ export class TimetableController {
       const { id } = req.params;
       const validated = createRoomSchema.partial().parse(req.body);
 
-      const room = await TimetableService.updateRoom(id, validated);
+      const room = await TimetableService.updateRoom(id, (req as AuthRequest).user.tenantId, validated);
 
       res.json({
         success: true,
@@ -423,7 +423,7 @@ export class TimetableController {
   static async deleteRoom(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await TimetableService.deleteRoom(id);
+      await TimetableService.deleteRoom(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,

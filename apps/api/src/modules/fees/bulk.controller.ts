@@ -19,7 +19,7 @@ const bulkGenerateSchema = z.object({
       }),
     )
     .min(1),
-  dueDate: z.string().transform(str => new Date(str)),
+  dueDate: z.coerce.date(),
   notes: z.string().optional(),
   discountCode: z.string().optional(),
   dryRun: z.boolean().optional().default(false),

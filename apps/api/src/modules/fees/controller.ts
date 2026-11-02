@@ -16,7 +16,7 @@ const feeStructureSchema = z.object({
     description: z.string().optional(),
     amount: z.number().min(0),
     isOptional: z.boolean().default(false),
-    dueDate: z.string().transform(str => new Date(str)).optional(),
+    dueDate: z.coerce.date().optional(),
     category: z.enum(['tuition', 'admission', 'exam', 'transport', 'library', 'sports', 'other']).default('other'),
   })),
   isActive: z.boolean().default(true),
@@ -30,9 +30,9 @@ const invoiceSchema = z.object({
     amount: z.number().min(0),
     quantity: z.number().min(1).default(1),
     category: z.string().optional(),
-    dueDate: z.string().transform(str => new Date(str)).optional(),
+    dueDate: z.coerce.date().optional(),
   })),
-  dueDate: z.string().transform(str => new Date(str)),
+  dueDate: z.coerce.date(),
   notes: z.string().optional(),
   discountCode: z.string().optional(),
 });
@@ -53,8 +53,8 @@ const discountSchema = z.object({
   applicableTo: z.enum(['all', 'specific_students', 'specific_grades']).default('all'),
   studentIds: z.array(z.string()).optional(),
   gradeIds: z.array(z.string()).optional(),
-  startDate: z.string().transform(str => new Date(str)),
-  endDate: z.string().transform(str => new Date(str)).optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
   maxUses: z.number().min(1).optional(),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
@@ -228,7 +228,7 @@ export class FeeController {
       const { id } = req.params;
       const { status } = req.body;
 
-      if (!['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'].includes(status)) {
+      if (!['draft', 'sent', 'partially_paid', 'cancelled'].includes(status)) {
         throw new AppError('Status is required', 400);
       }
 

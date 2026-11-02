@@ -6,11 +6,10 @@ import { Teacher } from '../../models/Teacher';
 import { AppError } from '../../middleware/error-handler';
 
 /* ─────────────────────────────────────────────────────────────
-   Safe wrappers
+   Query wrappers
    ─────────────────────────────────────────────────────────────
-   On a fresh MongoDB database with no collections, `.countDocuments()`
-   and `.aggregate()` can throw. These wrappers return safe fallbacks
-   so the API never 500s on an empty tenant.
+   Log database failures with the model context, then propagate them
+   so callers do not report a successful empty result for an outage.
    ───────────────────────────────────────────────────────────── */
 
 async function safeCount(
@@ -24,7 +23,7 @@ async function safeCount(
       `[communication] countDocuments failed on ${model.modelName} — returning 0`,
       err instanceof Error ? err.message : err,
     );
-    return 0;
+    throw err;
   }
 }
 
@@ -44,7 +43,7 @@ async function safeFind<T = any>(
       `[communication] find failed on ${model.modelName} — returning []`,
       err instanceof Error ? err.message : err,
     );
-    return [];
+    throw err;
   }
 }
 
@@ -108,10 +107,8 @@ export class NotificationService {
         Notification.countDocuments(query),
       ]);
     } catch (err) {
-      console.warn(
-        '[notifications] query failed — returning empty list',
-        err instanceof Error ? err.message : err,
-      );
+      console.error('[notifications] query failed', err);
+      throw err;
     }
 
     const unreadCount = await safeCount(Notification, {
@@ -152,8 +149,8 @@ export class NotificationService {
       );
       return { modifiedCount: result.modifiedCount };
     } catch (err) {
-      console.warn('[notifications] updateMany failed', err);
-      return { modifiedCount: 0 };
+      console.error('[notifications] updateMany failed', err);
+      throw err;
     }
   }
 
@@ -175,7 +172,7 @@ export class NotificationService {
     return notification;
   }
 
-  // ─── Safe: returns 0 on missing collection ───
+  // ─── Query errors are propagated to the controller ───
   static async getUnreadCount(tenantId: string, userId: string) {
     return safeCount(Notification, { tenantId, userId, read: false });
   }
@@ -259,7 +256,8 @@ export class AnnouncementService {
         Announcement.countDocuments(query),
       ]);
     } catch (err) {
-      console.warn('[announcements] query failed — returning empty', err);
+      console.error('[announcements] query failed', err);
+      throw err;
     }
 
     return {

@@ -85,12 +85,12 @@ export class AssignmentService {
     };
   }
 
-  static async getAssignmentById(id: string) {
+  static async getAssignmentById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid assignment ID', 400);
     }
 
-    const raw = await Assignment.findById(id).lean();
+    const raw = await Assignment.findOne({ _id: id, tenantId }).lean();
     if (!raw) {
       throw new AppError('Assignment not found', 404);
     }
@@ -99,7 +99,7 @@ export class AssignmentService {
     return assignment;
   }
 
-  static async updateAssignment(id: string, data: any) {
+  static async updateAssignment(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid assignment ID', 400);
     }
@@ -110,7 +110,7 @@ export class AssignmentService {
     }
 
     const assignment = await Assignment.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true },
     );
@@ -122,14 +122,14 @@ export class AssignmentService {
     return assignment;
   }
 
-  static async deleteAssignment(id: string) {
+  static async deleteAssignment(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid assignment ID', 400);
     }
 
-    await Submission.deleteMany({ assignmentId: id });
+    await Submission.deleteMany({ assignmentId: id, tenantId });
 
-    const assignment = await Assignment.findByIdAndDelete(id);
+    const assignment = await Assignment.findOneAndDelete({ _id: id, tenantId });
     if (!assignment) {
       throw new AppError('Assignment not found', 404);
     }
@@ -152,6 +152,7 @@ export class AssignmentService {
 
     const existingSubmission = await Submission.findOne({
       assignmentId: data.assignmentId,
+      tenantId,
       studentId: data.studentId,
     });
 
@@ -212,12 +213,12 @@ export class AssignmentService {
     };
   }
 
-  static async getSubmissionById(id: string) {
+  static async getSubmissionById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid submission ID', 400);
     }
 
-    const raw = await Submission.findById(id).lean();
+    const raw = await Submission.findOne({ _id: id, tenantId }).lean();
     if (!raw) {
       throw new AppError('Submission not found', 404);
     }
@@ -228,13 +229,14 @@ export class AssignmentService {
 
   static async gradeSubmission(
     submissionId: string,
+    tenantId: string,
     data: { score: number; feedback: string; gradedBy: string },
   ) {
     if (!mongoose.Types.ObjectId.isValid(submissionId)) {
       throw new AppError('Invalid submission ID', 400);
     }
 
-    const submission = await Submission.findById(submissionId);
+    const submission = await Submission.findOne({ _id: submissionId, tenantId });
     if (!submission) {
       throw new AppError('Submission not found', 404);
     }
@@ -265,7 +267,7 @@ export class AssignmentService {
     assignmentId: string,
     score: number,
   ) {
-    const assignment = await Assignment.findById(assignmentId);
+    const assignment = await Assignment.findOne({ _id: assignmentId, tenantId });
     if (!assignment) return;
 
     let gradebook = await Gradebook.findOne({
@@ -516,12 +518,12 @@ export class AssignmentService {
     };
   }
 
-  static async getReportCardById(id: string) {
+  static async getReportCardById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid report card ID', 400);
     }
 
-    const raw = await ReportCard.findById(id).lean();
+    const raw = await ReportCard.findOne({ _id: id, tenantId }).lean();
     if (!raw) {
       throw new AppError('Report card not found', 404);
     }
@@ -533,13 +535,13 @@ export class AssignmentService {
     return card;
   }
 
-  static async publishReportCard(id: string) {
+  static async publishReportCard(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid report card ID', 400);
     }
 
     const reportCard = await ReportCard.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: { status: 'published' } },
       { new: true },
     );

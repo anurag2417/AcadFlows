@@ -8,12 +8,12 @@ import { AuthRequest } from '../../middleware/auth';
 const markStudentAttendanceSchema = z.object({
   sectionId: z.string().min(1),
   academicYearId: z.string().min(1),
-  date: z.string().transform(str => new Date(str)),
+  date: z.coerce.date(),
   records: z.array(
     z.object({
       studentId: z.string().min(1),
       status: z.enum(['present', 'absent', 'late', 'half_day']),
-      checkInTime: z.string().transform(str => new Date(str)).optional(),
+      checkInTime: z.coerce.date().optional(),
       remarks: z.string().optional(),
     }),
   ),
@@ -21,28 +21,28 @@ const markStudentAttendanceSchema = z.object({
 
 const markTeacherAttendanceSchema = z.object({
   academicYearId: z.string().min(1),
-  date: z.string().transform(str => new Date(str)),
+  date: z.coerce.date(),
   records: z.array(
     z.object({
       teacherId: z.string().min(1),
       status: z.enum(['present', 'absent', 'late', 'half_day']),
-      checkInTime: z.string().transform(str => new Date(str)).optional(),
-      checkOutTime: z.string().transform(str => new Date(str)).optional(),
+      checkInTime: z.coerce.date().optional(),
+      checkOutTime: z.coerce.date().optional(),
       remarks: z.string().optional(),
     }),
   ),
 });
 
 const markHolidaySchema = z.object({
-  date: z.string().transform(str => new Date(str)),
+  date: z.coerce.date(),
   reason: z.string().min(1),
   sectionId: z.string().optional(),
   academicYearId: z.string().min(1),
 });
 
 const getAttendanceQuerySchema = z.object({
-  startDate: z.string().transform(str => new Date(str)).optional(),
-  endDate: z.string().transform(str => new Date(str)).optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
   status: z.string().optional(),
   page: z.string().transform(str => parseInt(str)).optional(),
   limit: z.string().transform(str => parseInt(str)).optional(),

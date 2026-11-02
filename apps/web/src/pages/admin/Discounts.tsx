@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import api from '../../lib/api';
 import {
   Card,
@@ -310,7 +311,7 @@ function DiscountModal({
     isActive: discount?.isActive ?? true,
   });
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError('');

@@ -23,7 +23,7 @@ const createAnnouncementSchema = z.object({
   targetUserIds: z.array(z.string()).optional(),
   targetGrades: z.array(z.string()).optional(),
   targetSections: z.array(z.string()).optional(),
-  expiresAt: z.string().transform(str => new Date(str)).optional(),
+  expiresAt: z.coerce.date().optional(),
   isPublished: z.boolean().default(true),
 });
 
@@ -130,9 +130,7 @@ export class CommunicationController {
       );
       res.json({ success: true, data: { count } });
     } catch (error) {
-      console.error('❌ Unread count error:', error);
-      // Return 0 rather than 500 — the badge just won't show.
-      res.json({ success: true, data: { count: 0 } });
+      next(error);
     }
   }
 

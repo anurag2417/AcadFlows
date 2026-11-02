@@ -17,7 +17,7 @@ const createAssignmentSchema = z.object({
   type: z.enum(['homework', 'classwork', 'project', 'quiz', 'test', 'exam']),
   maxScore: z.number().min(0),
   weightage: z.number().min(0).max(100),
-  dueDate: z.string().transform(str => new Date(str)),
+  dueDate: z.coerce.date(),
   instructions: z.string().optional(),
   attachments: z.array(z.object({
     name: z.string(),
@@ -126,7 +126,7 @@ export class AssignmentController {
   static async getAssignmentById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const assignment = await AssignmentService.getAssignmentById(id);
+      const assignment = await AssignmentService.getAssignmentById(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -142,7 +142,7 @@ export class AssignmentController {
       const { id } = req.params;
       const validated = createAssignmentSchema.partial().parse(req.body);
 
-      const assignment = await AssignmentService.updateAssignment(id, validated);
+      const assignment = await AssignmentService.updateAssignment(id, (req as AuthRequest).user.tenantId, validated);
 
       res.json({
         success: true,
@@ -157,7 +157,7 @@ export class AssignmentController {
   static async deleteAssignment(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await AssignmentService.deleteAssignment(id);
+      await AssignmentService.deleteAssignment(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -261,7 +261,7 @@ export class AssignmentController {
   static async getSubmissionById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const submission = await AssignmentService.getSubmissionById(id);
+      const submission = await AssignmentService.getSubmissionById(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -278,7 +278,7 @@ export class AssignmentController {
       const { id } = req.params;
       const validated = gradeSubmissionSchema.parse(req.body);
 
-      const submission = await AssignmentService.gradeSubmission(id, {
+      const submission = await AssignmentService.gradeSubmission(id, authReq.user.tenantId, {
         ...validated,
         feedback: validated.feedback ?? '',
         gradedBy: authReq.user.id,
@@ -390,7 +390,7 @@ export class AssignmentController {
   static async getReportCardById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const reportCard = await AssignmentService.getReportCardById(id);
+      const reportCard = await AssignmentService.getReportCardById(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,
@@ -404,7 +404,7 @@ export class AssignmentController {
   static async publishReportCard(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const reportCard = await AssignmentService.publishReportCard(id);
+      const reportCard = await AssignmentService.publishReportCard(id, (req as AuthRequest).user.tenantId);
 
       res.json({
         success: true,

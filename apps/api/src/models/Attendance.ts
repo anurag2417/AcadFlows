@@ -22,7 +22,7 @@ export interface IAttendance extends Document {
 export interface IAttendanceSession extends Document {
   tenantId: string;
   academicYearId: string;
-  sectionId: string;
+  sectionId?: string;
   date: Date;
   dateOnly: string;
   type: 'student' | 'teacher';
@@ -70,7 +70,7 @@ const attendanceSessionSchema = new Schema<IAttendanceSession>(
   {
     tenantId: { type: String, required: true, index: true },
     academicYearId: { type: String, required: true, index: true },
-    sectionId: { type: String, required: true, index: true },
+    sectionId: { type: String, index: true },
     date: { type: Date, required: true, index: true },
     dateOnly: { type: String, required: true, index: true },
     type: { type: String, enum: ['student', 'teacher'], required: true },

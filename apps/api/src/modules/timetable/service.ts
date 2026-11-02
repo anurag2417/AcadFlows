@@ -53,12 +53,12 @@ export class TimetableService {
     };
   }
 
-  static async getTimetableById(id: string) {
+  static async getTimetableById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid timetable ID', 400);
     }
 
-    const timetable = await Timetable.findById(id)
+    const timetable = await Timetable.findOne({ _id: id, tenantId })
       .populate('createdBy', 'firstName lastName');
 
     if (!timetable) {
@@ -66,7 +66,7 @@ export class TimetableService {
     }
 
     // Attach entries from the separate collection
-    const entries = await TimetableEntry.find({ timetableId: id })
+    const entries = await TimetableEntry.find({ timetableId: id, tenantId })
       .populate('subjectId', 'name code')
       .populate('teacherId', 'firstName lastName')
       .populate('sectionId', 'name')
@@ -80,13 +80,13 @@ export class TimetableService {
     };
   }
 
-  static async updateTimetable(id: string, data: any) {
+  static async updateTimetable(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid timetable ID', 400);
     }
 
     const timetable = await Timetable.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -98,15 +98,15 @@ export class TimetableService {
     return timetable;
   }
 
-  static async deleteTimetable(id: string) {
+  static async deleteTimetable(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid timetable ID', 400);
     }
 
     // Delete all entries
-    await TimetableEntry.deleteMany({ timetableId: id });
+    await TimetableEntry.deleteMany({ timetableId: id, tenantId });
 
-    const timetable = await Timetable.findByIdAndDelete(id);
+    const timetable = await Timetable.findOneAndDelete({ _id: id, tenantId });
 
     if (!timetable) {
       throw new AppError('Timetable not found', 404);
@@ -174,8 +174,8 @@ export class TimetableService {
       }
     }
 
-    const entry = await TimetableEntry.findByIdAndUpdate(
-      entryId,
+    const entry = await TimetableEntry.findOneAndUpdate(
+      { _id: entryId, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -187,12 +187,12 @@ export class TimetableService {
     return entry;
   }
 
-  static async deleteEntry(entryId: string) {
+  static async deleteEntry(entryId: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(entryId)) {
       throw new AppError('Invalid entry ID', 400);
     }
 
-    const entry = await TimetableEntry.findByIdAndDelete(entryId);
+    const entry = await TimetableEntry.findOneAndDelete({ _id: entryId, tenantId });
     if (!entry) {
       throw new AppError('Timetable entry not found', 404);
     }
@@ -368,13 +368,13 @@ export class TimetableService {
     return await TimeSlot.find(query).sort({ startTime: 1 });
   }
 
-  static async updateTimeSlot(id: string, data: any) {
+  static async updateTimeSlot(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid time slot ID', 400);
     }
 
     const timeSlot = await TimeSlot.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -386,12 +386,12 @@ export class TimetableService {
     return timeSlot;
   }
 
-  static async deleteTimeSlot(id: string) {
+  static async deleteTimeSlot(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid time slot ID', 400);
     }
 
-    const timeSlot = await TimeSlot.findByIdAndDelete(id);
+    const timeSlot = await TimeSlot.findOneAndDelete({ _id: id, tenantId });
     if (!timeSlot) {
       throw new AppError('Time slot not found', 404);
     }
@@ -445,12 +445,12 @@ export class TimetableService {
     };
   }
 
-  static async getRoomById(id: string) {
+  static async getRoomById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid room ID', 400);
     }
 
-    const room = await Room.findById(id);
+    const room = await Room.findOne({ _id: id, tenantId });
     if (!room) {
       throw new AppError('Room not found', 404);
     }
@@ -458,13 +458,13 @@ export class TimetableService {
     return room;
   }
 
-  static async updateRoom(id: string, data: any) {
+  static async updateRoom(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid room ID', 400);
     }
 
     const room = await Room.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -476,12 +476,12 @@ export class TimetableService {
     return room;
   }
 
-  static async deleteRoom(id: string) {
+  static async deleteRoom(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid room ID', 400);
     }
 
-    const room = await Room.findByIdAndDelete(id);
+    const room = await Room.findOneAndDelete({ _id: id, tenantId });
     if (!room) {
       throw new AppError('Room not found', 404);
     }

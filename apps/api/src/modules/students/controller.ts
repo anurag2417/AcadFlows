@@ -24,7 +24,7 @@ const createStudentSchema = z.object({
   grade: z.string().trim().min(1, 'Grade is required'),
   section: z.string().trim().optional(),
   sectionId: z.string().trim().optional(),
-  dateOfBirth: z.string().transform(str => new Date(str)),
+  dateOfBirth: z.coerce.date(),
   gender: z.enum(['male', 'female', 'other']),
   bloodGroup: z
     .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])

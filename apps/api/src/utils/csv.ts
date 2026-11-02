@@ -97,7 +97,7 @@ export function sendCsv(
   const body = BOM + csv;
 
   // Sanitize filename (no slashes)
-  const safeName = filename.replace(/[\/\\]/g, '_');
+  const safeName = filename.replace(new RegExp('[\\\\/]', 'g'), '_');
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader(

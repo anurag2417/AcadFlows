@@ -271,7 +271,7 @@ export const validateSchoolCodeSchema = z
       .string()
       .min(1)
       .max(20)
-      .regex(/^[A-Z0-9\-]+$/),
+      .regex(/^[A-Z0-9-]+$/),
   })
   .strict();
 

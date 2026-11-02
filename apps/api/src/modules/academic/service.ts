@@ -18,23 +18,23 @@ export class AcademicYearService {
     return await AcademicYear.find({ tenantId }).sort({ startDate: -1 });
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const academicYear = await AcademicYear.findById(id);
+    const academicYear = await AcademicYear.findOne({ _id: id, tenantId });
     if (!academicYear) {
       throw new AppError('Academic year not found', 404);
     }
     return academicYear;
   }
 
-  static async update(id: string, data: any) {
+  static async update(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
     const academicYear = await AcademicYear.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -44,11 +44,11 @@ export class AcademicYearService {
     return academicYear;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const academicYear = await AcademicYear.findByIdAndDelete(id);
+    const academicYear = await AcademicYear.findOneAndDelete({ _id: id, tenantId });
     if (!academicYear) {
       throw new AppError('Academic year not found', 404);
     }
@@ -85,23 +85,23 @@ export class GradeService {
     return await Grade.find({ tenantId }).sort({ sequence: 1 });
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const grade = await Grade.findById(id);
+    const grade = await Grade.findOne({ _id: id, tenantId });
     if (!grade) {
       throw new AppError('Grade not found', 404);
     }
     return grade;
   }
 
-  static async update(id: string, data: any) {
+  static async update(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
     const grade = await Grade.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -111,11 +111,11 @@ export class GradeService {
     return grade;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const grade = await Grade.findByIdAndDelete(id);
+    const grade = await Grade.findOneAndDelete({ _id: id, tenantId });
     if (!grade) {
       throw new AppError('Grade not found', 404);
     }
@@ -138,23 +138,23 @@ export class SectionService {
     return await Section.find(filter).sort({ name: 1 });
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const section = await Section.findById(id);
+    const section = await Section.findOne({ _id: id, tenantId });
     if (!section) {
       throw new AppError('Section not found', 404);
     }
     return section;
   }
 
-  static async update(id: string, data: any) {
+  static async update(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
     const section = await Section.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -164,11 +164,11 @@ export class SectionService {
     return section;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const section = await Section.findByIdAndDelete(id);
+    const section = await Section.findOneAndDelete({ _id: id, tenantId });
     if (!section) {
       throw new AppError('Section not found', 404);
     }
@@ -191,23 +191,23 @@ export class SubjectService {
     return await Subject.find(filter).sort({ name: 1 });
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const subject = await Subject.findById(id);
+    const subject = await Subject.findOne({ _id: id, tenantId });
     if (!subject) {
       throw new AppError('Subject not found', 404);
     }
     return subject;
   }
 
-  static async update(id: string, data: any) {
+  static async update(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
     const subject = await Subject.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -217,11 +217,11 @@ export class SubjectService {
     return subject;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const subject = await Subject.findByIdAndDelete(id);
+    const subject = await Subject.findOneAndDelete({ _id: id, tenantId });
     if (!subject) {
       throw new AppError('Subject not found', 404);
     }
@@ -254,11 +254,11 @@ export class TeacherSubjectService {
       .populate('sectionId', 'name code');
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const teacherSubject = await TeacherSubject.findById(id)
+    const teacherSubject = await TeacherSubject.findOne({ _id: id, tenantId })
       .populate('teacherId', 'firstName lastName email')
       .populate('subjectId', 'name code')
       .populate('gradeId', 'name code')
@@ -269,11 +269,11 @@ export class TeacherSubjectService {
     return teacherSubject;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const teacherSubject = await TeacherSubject.findByIdAndDelete(id);
+    const teacherSubject = await TeacherSubject.findOneAndDelete({ _id: id, tenantId });
     if (!teacherSubject) {
       throw new AppError('Assignment not found', 404);
     }
@@ -325,11 +325,11 @@ export class ScheduleService {
       .populate('teacherId', 'firstName lastName email');
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const schedule = await Schedule.findById(id)
+    const schedule = await Schedule.findOne({ _id: id, tenantId })
       .populate('gradeId', 'name code')
       .populate('sectionId', 'name code')
       .populate('subjectId', 'name code')
@@ -340,12 +340,12 @@ export class ScheduleService {
     return schedule;
   }
 
-  static async update(id: string, data: any) {
+  static async update(id: string, tenantId: string, data: any) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
     const schedule = await Schedule.findByIdAndUpdate(
-      id,
+      { _id: id, tenantId },
       { $set: data },
       { new: true, runValidators: true }
     );
@@ -355,11 +355,11 @@ export class ScheduleService {
     return schedule;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, tenantId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
-    const schedule = await Schedule.findByIdAndDelete(id);
+    const schedule = await Schedule.findOneAndDelete({ _id: id, tenantId });
     if (!schedule) {
       throw new AppError('Schedule entry not found', 404);
     }
