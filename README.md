@@ -1,482 +1,178 @@
-# 🏫 AcadFlows - Complete Documentation
+# AcadFlows
 
-> A production-ready Multi-Tenant School Management System built with MERN Stack
+![School community collaborating](https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1600&q=85)
 
-[https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge\&logo=typescript\&logoColor=white)
-[https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB](https://img.shields.io/badge/React-20232A?style=for-the-badge\&logo=react\&logoColor=61DAFB)
-[https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge\&logo=node.js\&logoColor=white)
-[https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge\&logo=mongodb\&logoColor=white)
-[https://img.shields.io/badge/Tailwind\_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge\&logo=tailwind-css\&logoColor=white)
+**School operations in one connected workspace.** AcadFlows is a multi-tenant school management SaaS foundation for organizing academic operations, student records, attendance, fees, assignments, timetables, and school communication.
 
----
+[Product overview](docs/SAAS_PRODUCT.md) · [API overview](#api) · [Local setup](#get-started) · [Deployment](#deployment)
 
-## 📋 Table of Contents
+> **Project status:** AcadFlows is an actively developed MVP foundation. The repository contains working product flows, but it has not been independently validated as a production-ready service. Review the security, operations, and release checklist in [the product documentation](docs/SAAS_PRODUCT.md#production-readiness) before handling real school or student data.
 
-- Overview
-- Features
-- Technology Stack
-- Project Structure
-- Installation
-- Environment Variables
-- Database Seeding
-- Test Credentials
-- API Documentation
-- Deployment
-- Contributing
-- License
+## Product at a glance
 
----
+AcadFlows brings day-to-day school workflows into one browser application. School staff can maintain student and teacher records, configure academic structures, record attendance and fees, manage assignments, and communicate with their school community. Role-aware screens provide separate entry points for administrators, teachers, students, and guardians.
 
-## 🎯 Overview
+![Students learning in a classroom](https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1600&q=85)
 
-**AcadFlows** is a complete, production-ready multi-tenant school management system built as an MVP to validate the product concept. The platform allows schools to manage students, teachers, attendance, fees, assignments, timetables, and communication in one centralized system.
+### Current product areas
 
-### Key Features
+- **School accounts:** tenant registration and school-code flows.
+- **People and records:** student, teacher, and user management, with approval workflows.
+- **Academics:** academic years, grades, sections, subjects, and schedules.
+- **Attendance:** attendance entry, tracking, and reports.
+- **Fees:** fee structures, invoices, payments, and discounts.
+- **Learning:** assignments, submissions, grading, gradebooks, and report cards.
+- **Operations:** timetables, time slots, and room allocation.
+- **Communication:** announcements, in-app notifications, and messaging.
+- **Platform operations:** platform-admin views for school and user administration.
 
-- 🏫 **Multi-tenant Architecture** - Each school has isolated data
-- 👥 **Role-based Access** - Admin, Teacher, Student, Guardian
-- 🌓 **User-friendly Design** - Modern UI with light/dark themes
-- 🚀 **Scalable Foundation** - Built to migrate to microservices later
-- 🇮🇳 **India-Ready** - Configured for Indian schools with INR, IST, and Indian phone codes
+Feature availability and permissions are implemented in the application; see [known limitations](docs/SAAS_PRODUCT.md#production-readiness) before treating a workflow as production-ready.
 
----
+## Technology
 
-## ✨ Features
+| Layer | Implementation |
+|---|---|
+| Web app | React 18, TypeScript, Vite, Tailwind CSS, React Router |
+| API | Node.js, Express 4, TypeScript, Zod |
+| Data | MongoDB with Mongoose |
+| Authentication | JWT access tokens and refresh-token cookies |
+| Monorepo | pnpm workspaces with shared TypeScript package |
+| Deployment configuration | Render API blueprint and Vercel SPA rewrite |
 
-### ✅ Completed Features
-
-| **Module** | **Features**       |                                                                               |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| **Authentication**       | JWT with refresh tokens, HTTP-only cookies, Role-based access, Password reset |
-| **Multi-Tenant**         | Tenant isolation, 10-digit school codes, Subdomain support                    |
-| **Registration**         | 3-step flow (School Code → Role → Details), Role-specific forms               |
-| **School Management**    | School registration, Auto-generated school codes                              |
-| **Student Management**   | CRUD, Roll number system, Guardian verification, Bulk import (CSV)            |
-| **Teacher Management**   | CRUD, Employee records, Subject assignments, Leave management                 |
-| **Academic Management**  | Academic Years, Grades, Sections, Subjects, Class schedules                   |
-| **Attendance System**    | Daily attendance, Reports, Student/Teacher tracking, Notifications            |
-| **Fee Management**       | Fee structures, Invoice generation, Payment tracking, Discounts               |
-| **Assignment & Grading** | Create assignments, Submit work, Grade submissions, Report cards              |
-| **Timetable Management** | Create timetables, Room allocation, Conflict detection, Week/Day view         |
-| **Communication**        | In-app notifications, Announcements, Parent-teacher messaging                 |
-| **Profile Management**   | Profile picture upload, Change password, Update personal info                 |
-| **Dashboard**            | Role-specific dashboards, Quick actions, Statistics cards                     |
-| **Theme System**         | Light/Dark mode, Persistent preference                                        |
-
----
-
-## 🛠️ Technology Stack
-
-### Frontend
-
-| **Technology** | **Purpose** |               |
-| --------------------- | ------------- |
-| React 18              | UI Framework  |
-| TypeScript            | Type Safety   |
-| Vite                  | Build Tool    |
-| Tailwind CSS          | Styling       |
-| React Router v6       | Routing       |
-| Axios                 | API Client    |
-| React Hook Form       | Form Handling |
-| Zod                   | Validation    |
-
-### Backend
-
-| **Technology** | **Purpose** |                  |
-| --------------------- | ---------------- |
-| Node.js               | Runtime          |
-| Express               | Web Framework    |
-| TypeScript            | Type Safety      |
-| MongoDB               | Database         |
-| Mongoose              | ODM              |
-| JWT                   | Authentication   |
-| Bcrypt                | Password Hashing |
-| Multer                | File Upload      |
-
-### Deployment
-
-- **Frontend**: Vercel (Free Tier)
-- **Backend**: Render (Free Tier)
-- **Database**: MongoDB Atlas (M0 Free Tier)
-
----
-
-## 📁 Project Structure
+## Repository layout
 
 ```text
-acadflows/
-├── apps/
-│   ├── api/                      # Backend (Express + TypeScript)
-│   │   ├── src/
-│   │   │   ├── config/           # Configuration files
-│   │   │   ├── middleware/       # Auth, tenant, error handling
-│   │   │   ├── models/           # MongoDB schemas
-│   │   │   ├── modules/          # Feature modules
-│   │   │   │   ├── auth/         # Authentication
-│   │   │   │   ├── tenants/      # Multi-tenant management
-│   │   │   │   ├── users/        # User management
-│   │   │   │   ├── students/     # Student management
-│   │   │   │   ├── teachers/     # Teacher management
-│   │   │   │   ├── academics/    # Academic management
-│   │   │   │   ├── attendance/   # Attendance system
-│   │   │   │   ├── fees/         # Fee management
-│   │   │   │   ├── assignments/  # Assignment & grading
-│   │   │   │   ├── timetable/    # Timetable management
-│   │   │   │   └── communication/# Notifications & messaging
-│   │   │   ├── scripts/          # Seed scripts
-│   │   │   └── utils/            # Utility functions
-│   │   ├── .env.example
-│   │   └── package.json
-│   │
-│   └── web/                      # Frontend (React + TypeScript)
-│       ├── src/
-│       │   ├── components/       # Reusable components
-│       │   ├── contexts/         # React contexts (Auth, Theme, Tenant)
-│       │   ├── lib/              # API client, utilities
-│       │   ├── pages/            # Page components
-│       │   └── styles/           # Theme configuration
-│       ├── .env.example
-│       └── package.json
-│
-├── packages/
-│   └── shared/                   # Shared TypeScript types
-│       └── src/types/
-│
-├── .github/workflows/            # CI/CD workflows
-├── pnpm-workspace.yaml
-├── package.json
-└── README.md
+apps/
+  api/                 Express API, MongoDB models, middleware, and feature modules
+  web/                 React single-page application
+packages/
+  shared/              Shared types and constants
+docs/
+  SAAS_PRODUCT.md      Product brief, workflows, architecture, and readiness guide
 ```
 
----
+The API is organized by feature under `apps/api/src/modules`. Shared API middleware and configuration live under `apps/api/src/middleware` and `apps/api/src/config`. The web app's pages, components, contexts, and API clients live under `apps/web/src`.
 
-## 🚀 Installation
+## Get started
 
-### Prerequisites
+### Requirements
 
-- Node.js 18+
-- pnpm 8+
-- MongoDB 6+
-- Git
+- Node.js 18 or later
+- pnpm 9 (the lockfile uses format version 9)
+- MongoDB 6 or later, local or hosted
 
-### Quick Start
+### Install and configure
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/yourusername/AcadFlows.git
+git clone https://github.com/anurag2417/AcadFlows.git
 cd AcadFlows
-
-# 2. Install pnpm (if not installed)
-npm install -g pnpm
-
-# 3. Install all dependencies
+corepack enable
 pnpm install
+```
 
-# 4. Build shared types
-pnpm build --filter @acadflows/shared
+Create local environment files from the examples:
 
-# 5. Set up environment variables
+```bash
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
-
-# 6. Edit .env files with your configuration
-
-# 7. Start MongoDB (local)
-mongod --dbpath /path/to/data
-
-# 8. Seed the database with India test data
-cd apps/api
-pnpm seed:india
-
-# 9. Start development servers
-cd ../..
-pnpm dev
-
-# 10. Access the application
-# Frontend: http://localhost:5173
-# Backend API: http://localhost:5000
 ```
 
----
+On PowerShell, use `Copy-Item apps/api/.env.example apps/api/.env` and the equivalent command for the web app. Set `MONGODB_URI`, `JWT_SECRET`, and `JWT_REFRESH_SECRET` in `apps/api/.env`. Use distinct, randomly generated secrets outside local development. Set `VITE_API_URL` in `apps/web/.env` to `http://localhost:5000/api/v1` for the default local API port.
 
-## 🔧 Environment Variables
-
-### Backend (`apps/api/.env`)
-
-```env
-NODE_ENV=development
-PORT=5000
-
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/acadflows
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_REFRESH_SECRET=your-super-secret-refresh-key
-JWT_EXPIRY=15m
-JWT_REFRESH_EXPIRY=7d
-
-# Frontend URL (CORS)
-FRONTEND_URL=http://localhost:5173
-
-# India Specific Settings
-TIMEZONE=Asia/Kolkata
-CURRENCY=INR
-CURRENCY_SYMBOL=₹
-COUNTRY=India
-PHONE_CODE=+91
-DATE_FORMAT=DD/MM/YYYY
-```
-
-
-### Frontend (`apps/web/.env`)
-
-```env
-VITE_API_URL=http://localhost:5000/api/v1
-```
-
----
-
-## 🗄️ Database Seeding
-
-### Seed with India Test Data
+Start the development services from the repository root:
 
 ```bash
-cd apps/api
-pnpm seed:india
+pnpm dev
 ```
 
+The web app runs at <http://localhost:5173> and the API at <http://localhost:5000>. The API health endpoint is <http://localhost:5000/health>. Ensure MongoDB is reachable before using API-backed workflows.
 
-This creates:
-
-- **School**: Delhi Public School, Noida
-- **Academic Year**: 2024-25
-- **Grades**: Class 1 to Class 12
-- **Sections**: A & B for each class
-- **Subjects**: Mathematics, Science, English, Hindi, Social Studies, etc.
-- **Users**: 1 Admin, 6 Teachers, 10 Students, 5 Guardians
-
-### Seed Commands
-
-| **Command** | **Description** |                            |
-| ---------------------- | -------------------------- |
-| `pnpm seed:india`      | Complete India test data   |
-| `pnpm seed:tenant`     | Create default tenant only |
-| `pnpm seed:schools`    | Create multiple schools    |
-
----
-
-## 🔑 Test Credentials
-
-| **Role** | **Email** | **Password** |                                       |                 |
-| --------------------- | ------------------------------------- | --------------- |
-| **Admin**             | `principal@dpsnoida.edu.in`           | `Admin@2024`    |
-| **Teacher**           | `priya.sharma@dpsnoida.edu.in`        | `Teacher@2024`  |
-| **Student**           | `arjun.mehta@student.dpsnoida.edu.in` | `Student@2024`  |
-| **Guardian**          | `guardian1@dpsnoida.edu.in`           | `Guardian@2024` |
-
-### School Code
-
-```text
-AB12-CD34-EF
-```
-
-
-(Replace with the actual code shown after seeding)
-
----
-
-## 📡 API Documentation
-
-### Authentication Endpoints
-
-| **Method** | **Endpoint** | **Description** |                                |                        |
-| ----------------------------- | ------------------------------ | ---------------------- |
-| POST                          | `/api/v1/auth/register`        | Register new user      |
-| POST                          | `/api/v1/auth/login`           | Login user             |
-| POST                          | `/api/v1/auth/refresh`         | Refresh access token   |
-| POST                          | `/api/v1/auth/logout`          | Logout user            |
-| GET                           | `/api/v1/auth/me`              | Get current user       |
-| POST                          | `/api/v1/auth/forgot-password` | Request password reset |
-| POST                          | `/api/v1/auth/reset-password`  | Reset password         |
-
-### Core Endpoints
-
-| **Module** | **Endpoint Prefix** |                         |
-| ------------------------- | ----------------------- |
-| Tenants                   | `/api/v1/tenants`       |
-| Users                     | `/api/v1/users`         |
-| Students                  | `/api/v1/students`      |
-| Teachers                  | `/api/v1/teachers`      |
-| Academics                 | `/api/v1/academic`      |
-| Attendance                | `/api/v1/attendance`    |
-| Fees                      | `/api/v1/fees`          |
-| Assignments               | `/api/v1/assignments`   |
-| Timetable                 | `/api/v1/timetable`     |
-| Communication             | `/api/v1/communication` |
-| Dashboard                 | `/api/v1/dashboard`     |
-
----
-
-## 🚢 Deployment
-
-### Backend (Render)
-
-1. Push your code to GitHub
-2. Create a new Web Service on Render
-3. Connect your GitHub repository
-4. Set build command: `pnpm install && pnpm build:api`
-5. Set start command: `pnpm start:api`
-6. Add environment variables
-
-### Frontend (Vercel)
+### Available commands
 
-1. Push your code to GitHub
-2. Import repository in Vercel
-3. Set build command: `pnpm build:web`
-4. Set output directory: `apps/web/dist`
-5. Add environment variables
-
-### Deployment Files
+| Command | Purpose |
+|---|---|
+| `pnpm dev` | Start workspace development processes in parallel |
+| `pnpm dev:web` | Start the Vite web app |
+| `pnpm dev:api` | Start the API in watch mode |
+| `pnpm build` | Build workspace packages and apps in parallel |
+| `pnpm build:web` | Type-check and build the web app |
+| `pnpm build:api` | Compile the API TypeScript |
+| `pnpm type-check` | Run workspace TypeScript checks |
+| `pnpm lint` | Run package lint scripts (API lint configuration may need setup) |
 
-```yaml
-# render.yaml
-services:
-  - type: web
-    name: acadflows-api
-    env: node
-    buildCommand: pnpm install && pnpm build:api
-    startCommand: pnpm start:api
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: MONGODB_URI
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: JWT_REFRESH_SECRET
-        sync: false
-```
+There is a two-school seed script in the API package: `pnpm --filter @acadflows/api seed:two-schools`. Use only against a disposable development database; inspect the script before running it against an existing database.
 
----
+## Configuration
 
-## 📊 Feature Roadmap
+### API: `apps/api/.env`
 
-### ✅ Completed (MVP)
+| Variable | Required | Description |
+|---|---:|---|
+| `NODE_ENV` | No | Runtime mode; use `production` for deployment |
+| `PORT` | No | HTTP port; defaults to `5000` |
+| `MONGODB_URI` | Yes in production | MongoDB connection string |
+| `JWT_SECRET` | Yes in production | Access-token signing secret; production requires 32+ characters |
+| `JWT_REFRESH_SECRET` | Yes in production | Refresh-token signing secret; production requires 32+ characters |
+| `JWT_EXPIRY` | No | Access-token lifetime; defaults to `60m` in code |
+| `JWT_REFRESH_EXPIRY` | No | Refresh-token lifetime; defaults to `30d` in code |
+| `FRONTEND_URL` | Yes in production | Allowed frontend origin for credentialed CORS |
+| `BASE_URL` | No | Public frontend base URL used in links |
+| `DEFAULT_TENANT_ID` | No | Default tenant context fallback |
+| `PLATFORM_ADMIN_EMAIL` | No | Destination for platform-admin school-registration notifications |
+| `RESEND_API_KEY` | No | Resend API key for outbound email |
+| `EMAIL_FROM` | No | Sender address used by email service |
+| `R2_ENDPOINT`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET` | No | Optional object-storage configuration |
 
-- Authentication System
-- Multi-tenant Architecture
-- Registration Flow
-- Student Management
-- Teacher Management
-- Academic Management
-- Profile Management
-- Dashboard System
-- Theme System
-- Attendance System
-- Fee Management
-- Assignment & Grading
-- Timetable Management
-- Communication System
+### Web: `apps/web/.env`
 
-### 🚧 Future Enhancements
+| Variable | Required | Description |
+|---|---:|---|
+| `VITE_API_URL` | Yes | API base URL, e.g. `https://api.example.com/api/v1` |
 
-- Mobile App (React Native)
-- Live Payment Gateway
-- Advanced Analytics
-- AI-powered Recommendations
-- Mobile Push Notifications
-- WhatsApp Integration
-- Multi-Campus Support
-- Internationalization (i18n)
+Only expose public configuration to the browser. Never put secrets in `VITE_*` variables.
 
----
+## API
 
-## 🤝 Contributing
+The versioned API is mounted at `/api/v1`. Main route groups include:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+| Prefix | Area |
+|---|---|
+| `/auth` | Registration, login, refresh, logout, profile identity, and password flows |
+| `/tenants` | School registration and tenant operations |
+| `/students`, `/users`, `/teachers` | People and school records |
+| `/academic`, `/public/academic` | Academic administration and public registration lookups |
+| `/attendance` | Attendance operations and reporting |
+| `/fees` | Fees, invoices, payments, and discounts |
+| `/assignments` | Assignments, submissions, gradebooks, and report cards |
+| `/timetable` | Timetables, entries, rooms, and time slots |
+| `/communication` | Announcements, messages, and notifications |
+| `/dashboard`, `/approvals`, `/documents`, `/platform` | Dashboards, approvals, documents, and platform administration |
 
-### Development Guidelines
+Use the route files in `apps/api/src/modules/*/routes.ts` and their controllers as the source of truth for endpoint paths, HTTP methods, request schemas, and permissions. A generated OpenAPI specification is not currently included.
 
-- **Code Style**: Follow TypeScript strict mode
-- **Commits**: Conventional commits
-- **Testing**: Write tests for new features
-- **Documentation**: Update README for API changes
+## Deployment
 
----
+The repository includes `render.yaml` for the API and `vercel.json` for SPA routing. Treat those files as deployment starting points and review their commands and environment settings against the target hosting account.
 
-## 📄 License
+1. Provision MongoDB with backups enabled and restrict database network access.
+2. Deploy the API with the Render blueprint or an equivalent Node.js service. Set production `MONGODB_URI`, strong unique JWT secrets, and the exact browser origin in `FRONTEND_URL`.
+3. Deploy `apps/web` as a Vite static site. Configure `VITE_API_URL` to the deployed API's `/api/v1` base URL.
+4. Configure email and object storage only after validating credentials, access policies, and the application's integration behavior.
+5. Verify health checks, registration/login, tenant boundaries, core workflows, backup restoration, and operational alerts before inviting users.
 
-This project is proprietary and confidential.
+For a fuller deployment and operations checklist, see [SaaS product documentation](docs/SAAS_PRODUCT.md).
 
----
+## Contributing
 
-## 🙏 Acknowledgments
+1. Create a branch for the change.
+2. Keep changes scoped to the affected feature and update documentation when behavior changes.
+3. Run the relevant type-check, build, and lint commands available in your environment.
+4. Open a pull request with a concise summary, verification results, and any migrations or configuration changes.
 
-- [React](https://reactjs.org/)
-- [Node.js](https://nodejs.org/)
-- [MongoDB](https://www.mongodb.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Vite](https://vitejs.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
+## License
 
----
+No open-source license is currently declared. Unless the repository owner adds one, all rights are reserved and reuse/distribution permissions should not be assumed.
 
-## 📞 Support
+## Image credits
 
-### Documentation
-
-- [MongoDB Docs](https://docs.mongodb.com/)
-- [Express Docs](https://expressjs.com/)
-- [React Docs](https://reactjs.org/)
-- [TypeScript Docs](https://www.typescriptlang.org/)
-- [Tailwind CSS Docs](https://tailwindcss.com/)
-
----
-
-## 🎉 Summary
-
-**AcadFlows** is a complete, production-ready school management system with:
-
-✅ 15+ Core Features
-✅ Multi-tenant Architecture
-✅ Role-based Access Control
-✅ India-Ready Configuration
-✅ Light/Dark Theme
-✅ Complete REST API
-✅ Modern React Frontend
-✅ TypeScript Throughout
-
----
-
-## 📸 Screenshots
-
-### Landing Page
-
-[https://via.placeholder.com/800x400?text=Landing+Page](https://via.placeholder.com/800x400?text=Landing+Page)
-
-### Admin Dashboard
-
-[https://via.placeholder.com/800x400?text=Admin+Dashboard](https://via.placeholder.com/800x400?text=Admin+Dashboard)
-
-### Student Management
-
-[https://via.placeholder.com/800x400?text=Student+Management](https://via.placeholder.com/800x400?text=Student+Management)
-
-### Dark Mode
-
-[https://via.placeholder.com/800x400?text=Dark+Mode](https://via.placeholder.com/800x400?text=Dark+Mode)
-
----
-
-**Made with ❤️ for Indian Schools**
-
----
-
-## 🏷️ Tags
-
-`school-management` `education` `react` `nodejs` `mongodb` `typescript` `multi-tenant` `india` `mern-stack` `tailwindcss` `attendance` `fee-management` `grading-system` `timetable` `communication` `school-erp`
+Images are loaded directly from Unsplash Source image URLs and require internet access to display. They are illustrative product imagery, not screenshots of AcadFlows. Review Unsplash's current license and terms before reusing these images in a commercial deployment.
