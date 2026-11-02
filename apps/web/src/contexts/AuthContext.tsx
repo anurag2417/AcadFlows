@@ -52,7 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await api.get('/auth/me');
         setUser(response.data.data.user);
       } catch (error) {
-        console.error('Failed to load user:', error);
+        if ((error as any)?.response?.status !== 401) {
+          console.error('Failed to load user:', error);
+        }
         setAccessToken(null);
         setUser(null);
       } finally {

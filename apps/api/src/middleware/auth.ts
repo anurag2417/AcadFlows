@@ -102,7 +102,11 @@ export function requireRole(...roles: string[]) {
   };
 }
 
-export function ensureTenantMatch(req: Request, res: Response, next: NextFunction) {
+export async function ensureTenantMatch(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const authReq = req as AuthRequest;
   const tenantReq = req as TenantRequest;
 
@@ -114,9 +118,21 @@ export function ensureTenantMatch(req: Request, res: Response, next: NextFunctio
   }
 
   if (!tenantReq.tenantId) {
+    const tenant = await Tenant.findOne({
+      _id: authReq.user.tenantId,
+      status: 'active',
+    });
+
+    if (tenant) {
+      tenantReq.tenantId = tenant.id;
+      tenantReq.tenant = tenant;
+    }
+  }
+
+  if (!tenantReq.tenantId) {
     return res.status(400).json({
       success: false,
-      error: 'Active tenant context is required',
+      error: 'Active tenant context is required for your account',
     });
   }
 

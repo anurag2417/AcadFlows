@@ -5,6 +5,8 @@ import { SchoolCodeInput } from '../components/SchoolCodeInput';
 import StepStudentPending from '../components/StepStudentPending';
 import api from '../lib/api';
 import ThemeToggle from '../components/ThemeToggle';
+import ErrorDialog from '../components/ErrorDialog';
+import { getErrorMessage } from '../lib/errors';
 import { cn } from '../lib/cn';
 
 // ─── Shared input styles ───
@@ -308,6 +310,9 @@ function StepAdminForm({
   tenantName,
   schoolCode,
 }: any) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <h3 className="text-xl font-semibold text-foreground">
@@ -326,8 +331,6 @@ function StepAdminForm({
         ['lastName', 'Last name', 'text'],
         ['email', 'Email', 'email'],
         ['phone', 'Phone (10 digits)', 'tel'],
-        ['password', 'Password', 'password'],
-        ['confirmPassword', 'Confirm password', 'password'],
       ].map(([field, label, type]) => (
         <label key={field} className={labelClass}>
           {label}
@@ -354,6 +357,41 @@ function StepAdminForm({
           />
         </label>
       ))}
+
+      {[
+        ['password', 'Password', showPassword, setShowPassword],
+        ['confirmPassword', 'Confirm password', showConfirmPassword, setShowConfirmPassword],
+      ].map(([field, label, visible, setVisible]) => (
+        <label key={field as string} className={labelClass}>
+          {label as string}
+          <div className="relative mt-1.5">
+            <input
+              required
+              type={visible ? 'text' : 'password'}
+              value={formData[field as string] || ''}
+              onChange={event => onChange(field as string, event.target.value)}
+              className={`${inputClass} mt-0 pr-10`}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() =>
+                (setVisible as React.Dispatch<React.SetStateAction<boolean>>)(
+                  value => !value,
+                )
+              }
+              className="absolute inset-y-0 right-0 px-3 text-muted hover:text-foreground"
+              aria-label={`${visible ? 'Hide' : 'Show'} ${label as string}`}
+            >
+              {visible ? '🙈' : '👁'}
+            </button>
+          </div>
+        </label>
+      ))}
+
+      <p className="text-xs text-muted">
+        Use at least 8 characters with uppercase, lowercase, a number, and a special character.
+      </p>
 
       <div className="flex items-center justify-between pt-2">
         <button type="button" onClick={onBack} className={backBtnClass}>
@@ -405,6 +443,7 @@ export default function RegisterPage() {
   const [pendingSuccess, setPendingSuccess] = useState<PendingSuccess | null>(
     null,
   );
+  const [dialogError, setDialogError] = useState('');
 
   const [formData, setFormData] = useState<Record<string, any>>({
     firstName: '',
@@ -497,12 +536,29 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      const message = 'Passwords do not match.';
+      setError(message);
+      setDialogError(message);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      const message = 'Password must be at least 8 characters.';
+      setError(message);
+      setDialogError(message);
+      return;
+    }
+
+    if (
+      !/[A-Z]/.test(formData.password) ||
+      !/[a-z]/.test(formData.password) ||
+      !/[0-9]/.test(formData.password) ||
+      !/[^A-Za-z0-9]/.test(formData.password)
+    ) {
+      const message =
+        'Password must contain at least one uppercase letter, lowercase letter, number, and special character.';
+      setError(message);
+      setDialogError(message);
       return;
     }
 
@@ -601,11 +657,9 @@ export default function RegisterPage() {
 
       navigate(tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard');
     } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-          err.message ||
-          'Registration failed. Please try again.',
-      );
+      const message = getErrorMessage(err);
+      setError(message);
+      setDialogError(message);
       setIsLoading(false);
     }
   };
@@ -845,6 +899,9 @@ export default function RegisterPage() {
               <p className="text-xs text-white/70 mt-1">Average setup time</p>
             </div>
           </div>
+          {dialogError && (
+            <ErrorDialog message={dialogError} onClose={() => setDialogError('')} />
+          )}
         </div>
       </div>
     </div>
