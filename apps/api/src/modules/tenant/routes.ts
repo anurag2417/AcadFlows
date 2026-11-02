@@ -78,11 +78,11 @@ router.post('/verify-email/:token', TenantController.verifySchoolEmail);
    PUBLIC — LOOKUPS + VALIDATION
    ───────────────────────────────────────────────────────────── */
 
-router.get('/public/:slug', TenantController.getPublicInfo);
 router.get(
   '/public/code/:schoolCode',
   TenantController.getPublicInfoBySchoolCode,
 );
+router.get('/public/:slug', TenantController.getPublicInfo);
 
 router.post('/validate-code', TenantController.validateSchoolCode);
 router.get('/validate/:tenantId', TenantController.validateTenant);

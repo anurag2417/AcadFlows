@@ -44,6 +44,7 @@ export interface IUser extends Document {
   bio?: string;
   lastLoginAt?: Date;
   emailVerified: boolean;
+  refreshTokenHash?: string;
 
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -98,6 +99,7 @@ const userSchema = new Schema<IUser>(
     bio: { type: String, trim: true, maxlength: 500 },
     lastLoginAt: Date,
     emailVerified: { type: Boolean, default: false },
+    refreshTokenHash: { type: String, select: false },
   },
   { timestamps: true },
 );

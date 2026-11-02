@@ -56,7 +56,7 @@ router.get(
 );
 
 // ── Fee Structures ──
-router.get('/structures', FeeController.getFeeStructures);
+router.get('/structures', requireRole('admin'), FeeController.getFeeStructures);
 router.post('/structures', requireRole('admin'), FeeController.createFeeStructure);
 router.get('/structures/:id', FeeController.getFeeStructureById);
 router.put('/structures/:id', requireRole('admin'), FeeController.updateFeeStructure);
@@ -74,7 +74,7 @@ router.post('/payments', requireRole('admin'), FeeController.recordPayment);
 router.get('/payments/:id', FeeController.getPaymentById);
 
 // ── Discounts ──
-router.get('/discounts', FeeController.getDiscounts);
+router.get('/discounts', requireRole('admin'), FeeController.getDiscounts);
 router.post('/discounts', requireRole('admin'), FeeController.createDiscount);
 router.get('/discounts/validate/:code', FeeController.validateDiscount);
 router.put('/discounts/:id', requireRole('admin'), FeeController.updateDiscount);

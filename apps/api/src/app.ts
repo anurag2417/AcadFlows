@@ -9,6 +9,7 @@ import { tenantContext } from './middleware/tenant-context';
 import { auditLog } from './middleware/audit-log';
 import { connectDB } from './config/database';
 import { authenticate, ensureTenantMatch } from './middleware/auth';
+import { apiLimiter } from './middleware/rate-limit';
 
 // Import routes
 import authRoutes from './modules/auth/routes';
@@ -26,6 +27,7 @@ import timetableRoutes from './modules/timetable/routes';
 import documentsRoutes from './modules/documents/routes';
 import platformRoutes from './modules/platform/routes';
 import approvalRoutes from './modules/approvals/routes';
+import attendanceRoutes from './modules/attendance/routes';
 
 const app: Express = express();
 
@@ -63,6 +65,7 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
+app.use(apiLimiter);
 
 /* ─────────────────────────────────────────────────────────────
    Tenant context (cached) — runs for every request
@@ -114,6 +117,7 @@ app.use('/api/v1/assignments', authenticate, ensureTenantMatch, assignmentRoutes
 app.use('/api/v1/communication', authenticate, ensureTenantMatch, communicationRoutes);
 app.use('/api/v1/timetable', authenticate, ensureTenantMatch, timetableRoutes);
 app.use('/api/v1/documents', authenticate, ensureTenantMatch, documentsRoutes);
+app.use('/api/v1/attendance', authenticate, ensureTenantMatch, attendanceRoutes);
 
 // School-admin approval queues (teachers / students / guardians)
 app.use('/api/v1/approvals', authenticate, ensureTenantMatch, approvalRoutes);

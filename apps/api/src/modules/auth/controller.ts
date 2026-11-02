@@ -77,16 +77,21 @@ export class AuthController {
         tenantId: result.user.tenantId,
       });
 
-      const cookieOpts = getRefreshCookieOptions();
-      res.cookie('refreshToken', result.tokens.refreshToken, cookieOpts);
+      if (result.tokens) {
+        const cookieOpts = getRefreshCookieOptions();
+        res.cookie('refreshToken', result.tokens.refreshToken, cookieOpts);
+      }
 
       res.status(201).json({
         success: true,
         data: {
           user: result.user,
-          accessToken: result.tokens.accessToken,
+          accessToken: result.tokens?.accessToken ?? null,
         },
-        message: 'Registration successful!',
+        message:
+          result.user.status === 'pending'
+            ? 'Registration received. You will be notified once your account is approved.'
+            : 'Registration successful!',
       });
     } catch (error) {
       console.error('❌ Registration error:', error);
@@ -149,6 +154,11 @@ export class AuthController {
 
   static async logout(req: Request, res: Response, next: NextFunction) {
     try {
+      const userId = (req as any).user?.id;
+      if (userId) {
+        await AuthService.logout(userId);
+      }
+
       const cookieOpts = getRefreshCookieOptions();
       res.clearCookie('refreshToken', {
         httpOnly: cookieOpts.httpOnly,

@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import type { TenantRequest } from './tenant-context';
+import { User } from '../models/User';
+import { isPlatformAdminEmail } from '../utils/platform-admin';
 
 export interface AuthRequest extends Request {
   user: {
@@ -12,11 +14,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-/* ─────────────────────────────────────────────────────────────
-   authenticate — verifies the JWT and attaches req.user
-   ───────────────────────────────────────────────────────────── */
-
-export function authenticate(req: Request, res: Response, next: NextFunction) {
+export async function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
 
@@ -27,13 +25,37 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
       });
     }
 
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const decoded = jwt.verify(token, config.jwt.secret) as {
+      userId: string;
+      tenantId: string;
+      email: string;
+      role: string;
+    };
+
+    const user = await User.findById(decoded.userId).select(
+      'status email role tenantId',
+    );
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token',
+      });
+    }
+
+    const platformAdmin = isPlatformAdminEmail(user.email);
+    if (!platformAdmin && user.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        error: 'Account is not active',
+      });
+    }
 
     (req as AuthRequest).user = {
-      id: decoded.userId,
-      tenantId: decoded.tenantId,
-      email: decoded.email,
-      role: decoded.role,
+      id: user.id,
+      tenantId: user.tenantId,
+      email: user.email,
+      role: user.role,
     };
 
     next();
@@ -50,10 +72,6 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     });
   }
 }
-
-/* ─────────────────────────────────────────────────────────────
-   requireRole — restricts a route to specific roles
-   ───────────────────────────────────────────────────────────── */
 
 export function requireRole(...roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -77,20 +95,10 @@ export function requireRole(...roles: string[]) {
   };
 }
 
-/* ─────────────────────────────────────────────────────────────
-   ensureTenantMatch — verifies the request's tenant matches the JWT
-   
-   IMPORTANT: This middleware MUST run after `authenticate`.
-   If a route accidentally mounts it standalone, we now return 401
-   instead of silently allowing the request through (which caused
-   the "Cannot read properties of undefined" crash).
-   ───────────────────────────────────────────────────────────── */
-
 export function ensureTenantMatch(req: Request, res: Response, next: NextFunction) {
   const authReq = req as AuthRequest;
   const tenantReq = req as TenantRequest;
 
-  // Authenticate must have run first. If not, reject loudly.
   if (!authReq.user?.tenantId) {
     return res.status(401).json({
       success: false,
@@ -98,13 +106,10 @@ export function ensureTenantMatch(req: Request, res: Response, next: NextFunctio
     });
   }
 
-  // If no tenant context resolved from headers/cookies, we can't compare.
-  // In that case, trust the JWT (the tenant is already baked in).
   if (!tenantReq.tenantId) {
     return next();
   }
 
-  // If the resolved tenant doesn't match the JWT's tenant, reject.
   if (authReq.user.tenantId !== tenantReq.tenantId) {
     return res.status(403).json({
       success: false,

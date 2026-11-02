@@ -1,15 +1,16 @@
 import { Router } from 'express';
 import { AuthController } from './controller';
 import { authenticate } from '../../middleware/auth';
+import { loginLimiter } from '../../middleware/rate-limit';
 
 const router: Router = Router();
 
 // Public routes
 router.post('/register', AuthController.register);
-router.post('/login', AuthController.login);
+router.post('/login', loginLimiter, AuthController.login);
 router.post('/refresh', AuthController.refresh);
-router.post('/forgot-password', AuthController.forgotPassword);
-router.post('/reset-password', AuthController.resetPassword);
+router.post('/forgot-password', loginLimiter, AuthController.forgotPassword);
+router.post('/reset-password', loginLimiter, AuthController.resetPassword);
 
 // Protected routes
 router.post('/logout', authenticate, AuthController.logout);

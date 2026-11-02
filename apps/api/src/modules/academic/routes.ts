@@ -7,14 +7,11 @@ import {
   TeacherSubjectController,
   ScheduleController,
 } from './controller';
-import { authenticate, requireRole, ensureTenantMatch } from '../../middleware/auth';
+import { requireRole } from '../../middleware/auth';
 
 const router: Router = Router();
 
-// Every route in this file requires auth + tenant match.
-// Public read-only lookups live in modules/public-academic/routes.ts.
-router.use(ensureTenantMatch);
-router.use(authenticate);
+// Auth + tenant match are applied in app.ts.
 
 // Academic Years
 router.get('/academic-years', AcademicYearController.getAll);
@@ -48,16 +45,16 @@ router.delete('/subjects/:id', requireRole('admin'), SubjectController.delete);
 // Teacher Subjects
 router.get('/teacher-subjects', TeacherSubjectController.getAll);
 router.post('/teacher-subjects', requireRole('admin'), TeacherSubjectController.assign);
+router.get('/teacher-subjects/teacher/:teacherId', TeacherSubjectController.getByTeacher);
 router.get('/teacher-subjects/:id', TeacherSubjectController.getById);
 router.delete('/teacher-subjects/:id', requireRole('admin'), TeacherSubjectController.delete);
-router.get('/teacher-subjects/teacher/:teacherId', TeacherSubjectController.getByTeacher);
 
 // Schedules
 router.get('/schedules', ScheduleController.getAll);
 router.post('/schedules', requireRole('admin'), ScheduleController.create);
+router.get('/schedules/timetable/:sectionId', ScheduleController.getTimetableBySection);
 router.get('/schedules/:id', ScheduleController.getById);
 router.put('/schedules/:id', requireRole('admin'), ScheduleController.update);
 router.delete('/schedules/:id', requireRole('admin'), ScheduleController.delete);
-router.get('/schedules/timetable/:sectionId', ScheduleController.getTimetableBySection);
 
 export default router;

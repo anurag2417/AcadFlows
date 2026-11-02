@@ -12,7 +12,6 @@ const router: Router = Router();
    PUBLIC ROUTES — must come BEFORE router.use(authenticate)
    ───────────────────────────────────────────────────────────── */
 
-router.get('/tenant/:tenantId', StudentController.getStudentsByTenant);
 router.post('/verify-rollno', StudentController.verifyRollNo);
 router.post('/verify-identity', StudentIdentityController.verifyIdentity);
 
@@ -51,9 +50,9 @@ router.post(
 router.get('/export', requireRole('admin'), StudentExportController.export);
 
 // CRUD
-router.get('/', StudentController.getStudents);
-router.get('/search', StudentController.searchStudents);
-router.get('/stats', StudentController.getStats);
+router.get('/', requireRole('admin', 'teacher'), StudentController.getStudents);
+router.get('/search', requireRole('admin', 'teacher'), StudentController.searchStudents);
+router.get('/stats', requireRole('admin', 'teacher'), StudentController.getStats);
 router.post('/', requireRole('admin'), StudentController.createStudent);
 router.get('/:studentId', StudentController.getStudentById);
 router.put('/:studentId', requireRole('admin'), StudentController.updateStudent);

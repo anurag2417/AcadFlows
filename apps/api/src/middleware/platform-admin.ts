@@ -33,7 +33,10 @@ export function requirePlatformAdmin(
     });
   }
 
-  if (authReq.user.email !== config.platformAdmin.email) {
+  if (
+    authReq.user.email.toLowerCase().trim() !==
+    config.platformAdmin.email.toLowerCase().trim()
+  ) {
     return res.status(403).json({
       success: false,
       error: 'Forbidden — platform admin access required',

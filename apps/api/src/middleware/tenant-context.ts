@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { Tenant } from '../models/Tenant';
-import { config } from '../config';
 
 export interface TenantRequest extends Request {
   tenantId?: string;
@@ -131,7 +130,7 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
         let cached = getCached(cacheKey);
         if (cached === undefined) {
           if (mongoose.Types.ObjectId.isValid(headerTenantId)) {
-            cached = await Tenant.findById(headerTenantId);
+            cached = await Tenant.findOne({ _id: headerTenantId, status: 'active' });
           } else {
             cached = await Tenant.findOne({ slug: headerTenantId, status: 'active' });
           }
@@ -151,7 +150,7 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
       let cached = getCached(cacheKey);
       if (cached === undefined) {
         if (mongoose.Types.ObjectId.isValid(queryTenantId)) {
-          cached = await Tenant.findById(queryTenantId);
+          cached = await Tenant.findOne({ _id: queryTenantId, status: 'active' });
         } else {
           cached = await Tenant.findOne({ slug: queryTenantId, status: 'active' });
         }
@@ -170,28 +169,10 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
       let cached = getCached(cacheKey);
       if (cached === undefined) {
         if (mongoose.Types.ObjectId.isValid(cookieTenantId)) {
-          cached = await Tenant.findById(cookieTenantId);
+          cached = await Tenant.findOne({ _id: cookieTenantId, status: 'active' });
         } else {
           cached = await Tenant.findOne({ slug: cookieTenantId, status: 'active' });
         }
-        setCached(cacheKey, cached);
-      }
-      if (cached) {
-        tenant = cached;
-        tenantId = cached._id.toString();
-      }
-    }
-
-    // 5. Development fallback — first active tenant
-    if (!tenantId && process.env.NODE_ENV === 'development') {
-      const cacheKey = 'dev:any';
-      let cached = getCached(cacheKey);
-      if (cached === undefined) {
-        const defaultTenant = await Tenant.findOne({
-          slug: config.tenant.defaultSlug || 'default',
-          status: 'active',
-        });
-        cached = defaultTenant || (await Tenant.findOne({ status: 'active' }));
         setCached(cacheKey, cached);
       }
       if (cached) {

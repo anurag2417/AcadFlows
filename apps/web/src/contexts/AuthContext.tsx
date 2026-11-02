@@ -94,8 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const response = await api.post('/auth/register', data);
       const { user, accessToken } = response.data.data;
-      localStorage.setItem('accessToken', accessToken);
-      setUser(user);
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+        setUser(user);
+      }
     } catch (error) {
       console.error('Registration error:', error);
       throw error;

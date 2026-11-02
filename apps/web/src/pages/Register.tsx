@@ -587,8 +587,7 @@ export default function RegisterPage() {
 
       await register(registrationData);
 
-      // Student — show the "waiting for approval" screen.
-      if (selectedRole === 'student') {
+      if (selectedRole !== 'admin') {
         setPendingSuccess({
           firstName: formData.firstName,
           email: formData.email,
@@ -600,7 +599,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Non-students go straight to their dashboard.
       navigate(tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard');
     } catch (err: any) {
       setError(

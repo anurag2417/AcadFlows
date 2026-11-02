@@ -18,17 +18,7 @@ import {
 import { UserCreateInput, UserLoginInput, AuthTokens } from '@acadflows/shared';
 import { generateAdmissionNo } from '../../utils/admission';
 import { generateEmployeeId } from '../../utils/employee';
-
-/* ─────────────────────────────────────────────────────────────
-   Helper — is this email the platform admin?
-   ───────────────────────────────────────────────────────────── */
-
-function isPlatformAdminEmail(email: string | undefined): boolean {
-  if (!email) return false;
-  const adminEmail = config.platformAdmin.email;
-  if (!adminEmail) return false;
-  return email.toLowerCase().trim() === adminEmail.toLowerCase().trim();
-}
+import { isPlatformAdminEmail } from '../../utils/platform-admin';
 
 export class AuthService {
   /* ═══════════════════════════════════════════════════════════
@@ -37,7 +27,7 @@ export class AuthService {
 
   static async register(
     input: UserCreateInput,
-  ): Promise<{ user: any; tokens: AuthTokens }> {
+  ): Promise<{ user: any; tokens: AuthTokens | null }> {
     console.log('🔵 [register] start', {
       email: input.email,
       role: input.role,
@@ -165,16 +155,16 @@ export class AuthService {
     let approvedBy: string | undefined;
     let approvedAt: Date | undefined;
 
-    if (!adminExists || registeringPlatformAdmin) {
+    if (registeringPlatformAdmin) {
       finalRole = 'admin';
       initialStatus = 'active';
-      approvedBy = registeringPlatformAdmin ? 'platform-admin' : 'system';
+      approvedBy = 'platform-admin';
       approvedAt = new Date();
-      console.log(
-        `🔐 Auto-approving admin for ${input.email} (${
-          registeringPlatformAdmin ? 'platform admin' : 'first admin'
-        })`,
-      );
+    } else if (!adminExists && input.role === 'admin') {
+      initialStatus = 'active';
+      approvedBy = 'system';
+      approvedAt = new Date();
+      console.log(`🔐 Auto-approving first school admin for ${input.email}`);
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -264,12 +254,15 @@ export class AuthService {
       }
     }
 
-    const tokens = this.generateTokens(
-      user.id,
-      user.tenantId,
-      user.email,
-      user.role,
-    );
+    const tokens =
+      user.status === 'active'
+        ? await this.generateTokens(
+            user.id,
+            user.tenantId,
+            user.email,
+            user.role,
+          )
+        : null;
 
     const { passwordHash: _passwordHash, ...userObj } = user.toObject();
 
@@ -636,11 +629,13 @@ export class AuthService {
     let linked = 0;
 
     for (const child of input.children) {
-      if (!child.studentId) continue;
+      const rollNo = child.rollNo?.trim().toUpperCase();
+      if (!rollNo) continue;
 
       const student = await Student.findOne({
-        _id: child.studentId,
         tenantId: input.tenantId,
+        rollNo,
+        status: 'active',
         isDeleted: false,
       });
 
@@ -696,6 +691,14 @@ export class AuthService {
     const isPlatformAdmin = isPlatformAdminEmail(user.email);
 
     if (!isPlatformAdmin) {
+      const tenant = await Tenant.findById(user.tenantId).select('status');
+      if (!tenant || tenant.status !== 'active') {
+        throw new AppError(
+          'This school is not active. Contact the platform administrator.',
+          403,
+        );
+      }
+
       if (user.status === 'pending') {
         throw new AppError(
           'Your account is pending approval. You will be notified once approved.',
@@ -729,7 +732,7 @@ export class AuthService {
     user.lastLoginAt = new Date();
     await user.save();
 
-    const tokens = this.generateTokens(
+    const tokens = await this.generateTokens(
       user.id,
       user.tenantId,
       user.email,
@@ -757,8 +760,15 @@ export class AuthService {
         config.jwt.refreshSecret,
       ) as any;
 
-      const user = await User.findById(decoded.userId);
+      const user = await User.findById(decoded.userId).select(
+        '+refreshTokenHash status tenantId email role',
+      );
       if (!user) {
+        throw new AppError('Invalid refresh token', 401);
+      }
+
+      const tokenHash = this.hashToken(refreshToken);
+      if (!user.refreshTokenHash || user.refreshTokenHash !== tokenHash) {
         throw new AppError('Invalid refresh token', 401);
       }
 
@@ -802,12 +812,16 @@ export class AuthService {
      TOKEN GENERATION
      ═══════════════════════════════════════════════════════════ */
 
-  private static generateTokens(
+  private static hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  private static async generateTokens(
     userId: string,
     tenantId: string,
     email: string,
     role: string,
-  ): AuthTokens {
+  ): Promise<AuthTokens> {
     const payload = { userId, tenantId, email, role };
 
     const accessToken = jwt.sign(payload, config.jwt.secret, {
@@ -818,7 +832,15 @@ export class AuthService {
       expiresIn: config.jwt.refreshExpiry as SignOptions['expiresIn'],
     });
 
+    await User.findByIdAndUpdate(userId, {
+      refreshTokenHash: this.hashToken(refreshToken),
+    });
+
     return { accessToken, refreshToken };
+  }
+
+  static async logout(userId: string): Promise<void> {
+    await User.findByIdAndUpdate(userId, { $unset: { refreshTokenHash: 1 } });
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -835,7 +857,7 @@ export class AuthService {
 
     await PasswordResetToken.create({
       userId: user.id,
-      token,
+      token: this.hashToken(token),
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       used: false,
     });
@@ -856,7 +878,10 @@ export class AuthService {
     token: string,
     newPassword: string,
   ): Promise<void> {
-    const record = await PasswordResetToken.findOne({ token, used: false });
+    const record = await PasswordResetToken.findOne({
+      token: this.hashToken(token),
+      used: false,
+    });
 
     if (!record) {
       throw new AppError('Invalid or expired reset token', 400);
