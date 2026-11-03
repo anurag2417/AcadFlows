@@ -5,6 +5,15 @@ import { Section } from '../../models/Section';
 import { Grade } from '../../models/Grade';
 import { Teacher } from '../../models/Teacher';
 import { AppError } from '../../middleware/error-handler';
+import { attachRefs } from '../../utils/attach-refs';
+
+const timetableEntryRefs = {
+  subjectId: { model: Subject, fields: 'name code' },
+  teacherId: { model: Teacher, fields: 'firstName lastName employeeId' },
+  sectionId: { model: Section, fields: 'name code gradeId' },
+  gradeId: { model: Grade, fields: 'name code' },
+  roomId: { model: Room, fields: 'name code' },
+};
 
 export class TimetableService {
   // ============ Timetable Management ============
@@ -48,8 +57,18 @@ export class TimetableService {
       Timetable.countDocuments(query),
     ]);
 
+    const items = await Promise.all(
+      timetables.map(async timetable => ({
+        ...timetable.toObject(),
+        entriesCount: await TimetableEntry.countDocuments({
+          tenantId,
+          timetableId: timetable._id.toString(),
+        }),
+      })),
+    );
+
     return {
-      items: timetables,
+      items,
       total,
       page,
       limit,
@@ -70,18 +89,12 @@ export class TimetableService {
     }
 
     // Attach entries from the separate collection
-    const entries = await TimetableEntry.find({ timetableId: id, tenantId })
-      .populate('subjectId', 'name code')
-      .populate('teacherId', 'firstName lastName')
-      .populate('sectionId', 'name')
-      .populate('gradeId', 'name')
-      .populate('roomId', 'name code')
-      .sort({ dayOfWeek: 1, startTime: 1 });
+    const rawEntries = await TimetableEntry.find({ timetableId: id, tenantId })
+      .sort({ dayOfWeek: 1, startTime: 1 })
+      .lean();
+    const entries = await attachRefs(rawEntries, timetableEntryRefs);
 
-    return {
-      ...timetable.toObject(),
-      entries,
-    };
+    return { ...timetable.toObject(), entries };
   }
 
   static async updateTimetable(id: string, tenantId: string, data: any) {
@@ -306,64 +319,63 @@ export class TimetableService {
 
   // ============ Timetable Views ============
 
-  static async getSectionTimetable(tenantId: string, sectionId: string, startDate?: Date, endDate?: Date) {
-    const query: any = {
-      tenantId,
-      sectionId,
-    };
-
-    if (startDate && endDate) {
-      query.createdAt = { $gte: startDate, $lte: endDate };
+  private static async getViewEntries(
+    tenantId: string,
+    filter: Record<string, string>,
+    academicYearId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    const timetableQuery: any = { tenantId, isActive: true };
+    if (academicYearId) timetableQuery.academicYearId = academicYearId;
+    if (startDate || endDate) {
+      timetableQuery.startDate = { $lte: endDate || new Date() };
+      timetableQuery.endDate = { $gte: startDate || new Date(0) };
     }
 
-    const entries = await TimetableEntry.find(query)
-      .populate('subjectId', 'name code')
-      .populate('teacherId', 'firstName lastName')
-      .populate('gradeId', 'name')
-      .populate('roomId', 'name code')
-      .sort({ dayOfWeek: 1, startTime: 1 });
+    const timetables = await Timetable.find(timetableQuery).select('_id').lean();
+    if (timetables.length === 0) return this.groupByDay([]);
+
+    const rawEntries = await TimetableEntry.find({
+      tenantId,
+      ...filter,
+      timetableId: { $in: timetables.map(timetable => timetable._id.toString()) },
+    })
+      .sort({ dayOfWeek: 1, startTime: 1 })
+      .lean();
+    const entries = await attachRefs(rawEntries, timetableEntryRefs);
 
     return this.groupByDay(entries);
   }
 
-  static async getTeacherTimetable(tenantId: string, teacherId: string, startDate?: Date, endDate?: Date) {
-    const query: any = {
-      tenantId,
-      teacherId,
-    };
-
-    if (startDate && endDate) {
-      query.createdAt = { $gte: startDate, $lte: endDate };
-    }
-
-    const entries = await TimetableEntry.find(query)
-      .populate('subjectId', 'name code')
-      .populate('sectionId', 'name')
-      .populate('gradeId', 'name')
-      .populate('roomId', 'name code')
-      .sort({ dayOfWeek: 1, startTime: 1 });
-
-    return this.groupByDay(entries);
+  static async getSectionTimetable(
+    tenantId: string,
+    sectionId: string,
+    academicYearId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    return this.getViewEntries(tenantId, { sectionId }, academicYearId, startDate, endDate);
   }
 
-  static async getRoomTimetable(tenantId: string, roomId: string, startDate?: Date, endDate?: Date) {
-    const query: any = {
-      tenantId,
-      roomId,
-    };
+  static async getTeacherTimetable(
+    tenantId: string,
+    teacherId: string,
+    academicYearId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    return this.getViewEntries(tenantId, { teacherId }, academicYearId, startDate, endDate);
+  }
 
-    if (startDate && endDate) {
-      query.createdAt = { $gte: startDate, $lte: endDate };
-    }
-
-    const entries = await TimetableEntry.find(query)
-      .populate('subjectId', 'name code')
-      .populate('teacherId', 'firstName lastName')
-      .populate('sectionId', 'name')
-      .populate('gradeId', 'name')
-      .sort({ dayOfWeek: 1, startTime: 1 });
-
-    return this.groupByDay(entries);
+  static async getRoomTimetable(
+    tenantId: string,
+    roomId: string,
+    academicYearId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    return this.getViewEntries(tenantId, { roomId }, academicYearId, startDate, endDate);
   }
 
   private static groupByDay(entries: any[]) {

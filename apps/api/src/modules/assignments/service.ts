@@ -227,8 +227,11 @@ export class AssignmentService {
     const query: any = { tenantId };
 
     if (filters.assignmentId) query.assignmentId = filters.assignmentId;
-    if (filters.studentId) query.studentId = filters.studentId;
-    if (filters.studentIds) query.studentId = { $in: filters.studentIds };
+    if (filters.studentIds) {
+      query.studentId = { $in: filters.studentIds };
+    } else if (filters.studentId) {
+      query.studentId = filters.studentId;
+    }
     if (filters.status) query.status = filters.status;
 
     const page = filters.page || 1;
@@ -501,12 +504,14 @@ export class AssignmentService {
         tenantId,
         entityId: data.studentId,
         type: 'student',
+        academicYearId: data.academicYearId,
         status: { $in: ['present', 'absent', 'late', 'half_day'] },
       }),
       Attendance.countDocuments({
         tenantId,
         entityId: data.studentId,
         type: 'student',
+        academicYearId: data.academicYearId,
         status: { $in: ['present', 'late', 'half_day'] },
       }),
     ]);
@@ -555,6 +560,7 @@ export class AssignmentService {
     tenantId: string,
     filters: {
       studentId?: string;
+      studentIds?: string[];
       academicYearId?: string;
       term?: string;
       status?: string;
@@ -564,7 +570,11 @@ export class AssignmentService {
   ) {
     const query: any = { tenantId };
 
-    if (filters.studentId) query.studentId = filters.studentId;
+    if (filters.studentIds) {
+      query.studentId = { $in: filters.studentIds };
+    } else if (filters.studentId) {
+      query.studentId = filters.studentId;
+    }
     if (filters.academicYearId) query.academicYearId = filters.academicYearId;
     if (filters.term) query.term = filters.term;
     if (filters.status) query.status = filters.status;

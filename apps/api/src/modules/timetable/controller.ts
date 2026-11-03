@@ -225,11 +225,12 @@ export class TimetableController {
     try {
       const authReq = req as AuthRequest;
       const { sectionId } = req.params;
-      const { startDate, endDate } = req.query;
+      const { academicYearId, startDate, endDate } = req.query;
 
       const timetable = await TimetableService.getSectionTimetable(
         authReq.user.tenantId,
         sectionId,
+        academicYearId as string,
         startDate ? new Date(startDate as string) : undefined,
         endDate ? new Date(endDate as string) : undefined
       );
@@ -247,11 +248,12 @@ export class TimetableController {
     try {
       const authReq = req as AuthRequest;
       const { teacherId } = req.params;
-      const { startDate, endDate } = req.query;
+      const { academicYearId, startDate, endDate } = req.query;
 
       const timetable = await TimetableService.getTeacherTimetable(
         authReq.user.tenantId,
         teacherId,
+        academicYearId as string,
         startDate ? new Date(startDate as string) : undefined,
         endDate ? new Date(endDate as string) : undefined
       );
@@ -269,11 +271,12 @@ export class TimetableController {
     try {
       const authReq = req as AuthRequest;
       const { roomId } = req.params;
-      const { startDate, endDate } = req.query;
+      const { academicYearId, startDate, endDate } = req.query;
 
       const timetable = await TimetableService.getRoomTimetable(
         authReq.user.tenantId,
         roomId,
+        academicYearId as string,
         startDate ? new Date(startDate as string) : undefined,
         endDate ? new Date(endDate as string) : undefined
       );

@@ -15,7 +15,7 @@ interface Timetable {
   isActive: boolean;
   startDate: string;
   endDate: string;
-  entries?: any[];
+  entriesCount?: number;
 }
 
 const typeVariant: Record<string, 'success' | 'danger' | 'accent' | 'info'> = {
@@ -166,7 +166,7 @@ export default function TimetablesPage() {
                 <div className="flex justify-between">
                   <span className="text-muted">Entries</span>
                   <span className="text-foreground font-medium">
-                    {tt.entries?.length || 0}
+                    {tt.entriesCount || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">

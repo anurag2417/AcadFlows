@@ -423,11 +423,24 @@ export class AssignmentController {
         if (!student) throw new AppError('Student profile not found', 404);
         scopedStudentId = student._id.toString();
       }
+      let linkedStudentIds: string[] | undefined;
+      if (authReq.user.role === 'guardian') {
+        const linkedStudents = await Student.find({
+          tenantId: authReq.user.tenantId,
+          'guardians.userId': authReq.user.id,
+          isDeleted: false,
+        }).select('_id');
+        linkedStudentIds = linkedStudents.map(student => student._id.toString());
+        if (studentId && !linkedStudentIds.includes(studentId as string)) {
+          throw new AppError('You are not linked to this student', 403);
+        }
+      }
 
       const result = await AssignmentService.getReportCards(
         authReq.user.tenantId,
         {
           studentId: scopedStudentId,
+          studentIds: studentId ? undefined : linkedStudentIds,
           academicYearId: academicYearId as string,
           term: term as string,
           status: status as string,
@@ -447,7 +460,31 @@ export class AssignmentController {
   static async getReportCardById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const reportCard = await AssignmentService.getReportCardById(id, (req as AuthRequest).user.tenantId);
+      const authReq = req as AuthRequest;
+      const reportCard = await AssignmentService.getReportCardById(id, authReq.user.tenantId);
+      const studentRef = reportCard.studentId as unknown as { _id?: string } | string;
+      const reportStudentId =
+        typeof studentRef === 'object' && studentRef
+          ? String(studentRef._id)
+          : studentRef;
+
+      if (authReq.user.role === 'student') {
+        const student = await Student.findOne({
+          _id: reportStudentId,
+          userId: authReq.user.id,
+          tenantId: authReq.user.tenantId,
+          isDeleted: false,
+        }).select('_id');
+        if (!student) throw new AppError('You may only view your own report card', 403);
+      } else if (authReq.user.role === 'guardian') {
+        const linked = await Student.exists({
+          _id: reportStudentId,
+          tenantId: authReq.user.tenantId,
+          'guardians.userId': authReq.user.id,
+          isDeleted: false,
+        });
+        if (!linked) throw new AppError('You are not linked to this student', 403);
+      }
 
       res.json({
         success: true,

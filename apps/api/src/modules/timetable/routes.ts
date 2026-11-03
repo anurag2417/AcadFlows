@@ -23,6 +23,7 @@ router.delete('/time-slots/:id', requireRole('admin'), TimetableController.delet
 
 router.get('/sections/:sectionId', TimetableController.getSectionTimetable);
 router.get('/teachers/:teacherId', TimetableController.getTeacherTimetable);
+router.get('/rooms/:roomId/timetable', TimetableController.getRoomTimetable);
 
 router.put('/entries/:entryId', requireRole('admin'), TimetableController.updateEntry);
 router.delete('/entries/:entryId', requireRole('admin'), TimetableController.deleteEntry);
