@@ -11,6 +11,12 @@ interface Subject {
   isElective: boolean;
   credits: number;
   status: 'active' | 'inactive';
+  gradeId?: string;
+}
+
+interface Grade {
+  _id: string;
+  name: string;
 }
 
 export default function SubjectsPage() {
@@ -18,9 +24,11 @@ export default function SubjectsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Subject | null>(null);
+  const [grades, setGrades] = useState<Grade[]>([]);
 
   useEffect(() => {
     fetchSubjects();
+    api.get('/academic/grades').then(res => setGrades(res.data.data || [])).catch(err => console.error(err));
   }, []);
 
   const fetchSubjects = async () => {
@@ -98,6 +106,9 @@ export default function SubjectsPage() {
                 )}
               </div>
               <p className="text-xs font-mono text-muted">{subject.code}</p>
+              <p className="text-xs text-muted mt-2">
+                Class: {grades.find(grade => grade._id === subject.gradeId)?.name || 'Not assigned'}
+              </p>
               {subject.description && (
                 <p className="text-sm text-muted mt-2 line-clamp-2">
                   {subject.description}
@@ -132,6 +143,7 @@ export default function SubjectsPage() {
       {showModal && (
         <SubjectModal
           subject={editing}
+          grades={grades}
           onClose={() => setShowModal(false)}
           onSuccess={() => {
             setShowModal(false);
@@ -145,16 +157,19 @@ export default function SubjectsPage() {
 
 function SubjectModal({
   subject,
+  grades,
   onClose,
   onSuccess,
 }: {
   subject: Subject | null;
+  grades: Grade[];
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
+    gradeId: subject?.gradeId || '',
     name: subject?.name || '',
     code: subject?.code || '',
     description: subject?.description || '',
@@ -167,6 +182,15 @@ function SubjectModal({
     setSaving(true);
     setError('');
     try {
+      if (subject && subject.gradeId !== form.gradeId) {
+        const confirmed = confirm(
+          'Changing this subject to another class can affect existing teacher assignments. Continue only if you have reviewed those assignments.',
+        );
+        if (!confirmed) {
+          setSaving(false);
+          return;
+        }
+      }
       if (subject) await api.put(`/academic/subjects/${subject._id}`, form);
       else await api.post('/academic/subjects', form);
       onSuccess();
@@ -191,6 +215,18 @@ function SubjectModal({
         )}
 
         <form onSubmit={submit} className="space-y-4">
+          <div>
+            <Label required>Class</Label>
+            <select
+              value={form.gradeId}
+              onChange={e => setForm({ ...form, gradeId: e.target.value })}
+              required
+              className="block w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground"
+            >
+              <option value="">Select class</option>
+              {grades.map(grade => <option key={grade._id} value={grade._id}>{grade.name}</option>)}
+            </select>
+          </div>
           <div>
             <Label required>Name</Label>
             <Input

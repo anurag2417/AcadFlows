@@ -51,7 +51,10 @@ const teacherSubjectSchema = new Schema<ITeacherSubject>(
   }
 );
 
-teacherSubjectSchema.index({ tenantId: 1, teacherId: 1, subjectId: 1 });
+teacherSubjectSchema.index(
+  { tenantId: 1, teacherId: 1, subjectId: 1, sectionId: 1, academicYearId: 1 },
+  { unique: true, partialFilterExpression: { status: 'active' } },
+);
 teacherSubjectSchema.index({ tenantId: 1, academicYearId: 1 });
 
 export const TeacherSubject = mongoose.model<ITeacherSubject>('TeacherSubject', teacherSubjectSchema);

@@ -14,6 +14,15 @@ interface Assignment {
   status: string;
 }
 
+interface AssignmentGroup {
+  key: string;
+  teacher: any;
+  grade: any;
+  section: any;
+  academicYearId: string;
+  assignments: Assignment[];
+}
+
 export default function TeacherAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -89,6 +98,26 @@ export default function TeacherAssignmentsPage() {
     if (!id) return 'All Sections';
     return sections.find(item => item._id === id)?.name || id;
   };
+  const groupedAssignments = assignments.reduce<AssignmentGroup[]>((groups, assignment) => {
+    const teacherId = assignment.teacherId?._id || assignment.teacherId;
+    const gradeId = assignment.gradeId?._id || assignment.gradeId || '';
+    const sectionId = assignment.sectionId?._id || assignment.sectionId || '';
+    const key = `${teacherId}-${gradeId}-${sectionId}-${assignment.academicYearId}`;
+    const existing = groups.find(group => group.key === key);
+    if (existing) {
+      existing.assignments.push(assignment);
+    } else {
+      groups.push({
+        key,
+        teacher: assignment.teacherId,
+        grade: assignment.gradeId,
+        section: assignment.sectionId,
+        academicYearId: assignment.academicYearId,
+        assignments: [assignment],
+      });
+    }
+    return groups;
+  }, []);
 
   return (
     <DashboardLayout>
@@ -123,71 +152,40 @@ export default function TeacherAssignmentsPage() {
           </p>
         </Card>
       ) : (
-        <Card padding="none" className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-elevated border-b border-border">
-                <tr>
-                  {['Teacher', 'Subject', 'Section', 'Status', ''].map((h, i) => (
-                    <th
-                      key={i}
-                      className={cn(
-                        'px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted',
-                        i === 4 ? 'text-right' : 'text-left',
-                      )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {groupedAssignments.map(group => (
+            <Card key={group.key}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {group.teacher?.firstName
+                      ? `${group.teacher.firstName} ${group.teacher.lastName}`
+                      : teacherName(group.teacher)}
+                  </p>
+                  <p className="text-sm text-muted">
+                    {group.grade?.name || group.grade || 'Class'} · Section {group.section?.name || sectionName(group.section)}
+                  </p>
+                </div>
+                <Badge variant="success" dot>Active</Badge>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {group.assignments.map(assignment => (
+                  <span key={assignment._id} className="inline-flex items-center gap-2 rounded-full bg-elevated px-3 py-1.5 text-sm text-foreground">
+                    {assignment.subjectId?.name || subjectDetails(assignment.subjectId)?.name || assignment.subjectId}
+                    <button
+                      type="button"
+                      className="text-danger hover:text-red-700"
+                      aria-label="Remove assignment"
+                      onClick={() => handleDelete(assignment._id)}
                     >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {assignments.map(a => (
-                  <tr key={a._id} className="hover:bg-elevated/50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <p className="text-sm font-medium text-foreground">
-                        {a.teacherId?.firstName
-                          ? `${a.teacherId.firstName} ${a.teacherId.lastName}`
-                          : teacherName(a.teacherId)}
-                      </p>
-                      <p className="text-xs text-muted">
-                        {a.teacherId?.employeeId || ''}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-foreground">
-                        {a.subjectId?.name || subjectDetails(a.subjectId)?.name || a.subjectId}
-                      </span>
-                      <p className="text-xs font-mono text-muted">
-                        {a.subjectId?.code || subjectDetails(a.subjectId)?.code}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-foreground">
-                        {a.sectionId?.name || sectionName(a.sectionId)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={a.status === 'active' ? 'success' : 'default'} dot>
-                        {a.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        className="text-danger"
-                        onClick={() => handleDelete(a._id)}
-                      >
-                        Remove
-                      </Button>
-                    </td>
-                  </tr>
+                      ×
+                    </button>
+                  </span>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+              </div>
+            </Card>
+          ))}
+        </div>
       )}
 
       {showModal && (
@@ -226,6 +224,12 @@ function AssignmentModal({
     sectionId: '',
     academicYearId: '',
   });
+
+  const classSubjects = subjects.filter((subject: any) => subject.gradeId === form.gradeId);
+  const eligibleTeachers = teachers.filter((teacher: any) =>
+    form.subjectIds.length > 0 &&
+    form.subjectIds.every((subjectId: string) => teacher.subjects?.includes(subjectId)),
+  );
 
   useEffect(() => {
     if (!form.academicYearId && academicYears.length > 0) {
@@ -290,24 +294,34 @@ function AssignmentModal({
             </Select>
           </div>
           <div>
-            <Label required>Teacher</Label>
+            <Label required>Class</Label>
             <Select
-              value={form.teacherId}
-              onChange={e => setForm({ ...form, teacherId: e.target.value })}
+              value={form.gradeId}
+              onChange={e => setForm({ ...form, gradeId: e.target.value, sectionId: '', subjectIds: [], teacherId: '' })}
               required
             >
-              <option value="">Select Teacher</option>
-              {teachers.map((t: any) => (
-                <option key={t._id} value={t._id}>
-                  {t.firstName} {t.lastName} ({t.employeeId})
-                </option>
+              <option value="">Select Class</option>
+              {grades.map((grade: any) => <option key={grade._id} value={grade._id}>{grade.name}</option>)}
+            </Select>
+          </div>
+          <div>
+            <Label>Section</Label>
+            <Select
+              value={form.sectionId}
+              onChange={e => setForm({ ...form, sectionId: e.target.value })}
+              disabled={!form.gradeId}
+              required
+            >
+              <option value="">{form.gradeId ? 'Select Section' : 'Select class first'}</option>
+              {sections.filter((section: any) => section.gradeId === form.gradeId).map((section: any) => (
+                <option key={section._id} value={section._id}>{section.name}</option>
               ))}
             </Select>
           </div>
           <div>
-            <Label required>Subjects</Label>
+            <Label required>Subjects for this class</Label>
             <div className="grid grid-cols-2 gap-2 mt-1.5">
-              {subjects.map((subject: any) => {
+              {classSubjects.map((subject: any) => {
                 const selected = form.subjectIds.includes(subject._id);
                 return (
                   <button
@@ -319,7 +333,8 @@ function AssignmentModal({
                         subjectIds: selected
                           ? previous.subjectIds.filter(id => id !== subject._id)
                           : [...previous.subjectIds, subject._id],
-                      }))
+                          teacherId: '',
+                        }))
                     }
                     className={cn(
                       'rounded-lg border px-3 py-2 text-left text-sm',
@@ -333,32 +348,26 @@ function AssignmentModal({
                 );
               })}
             </div>
+            {form.gradeId && classSubjects.length === 0 && <p className="mt-2 text-xs text-muted">Create subjects for this class first.</p>}
           </div>
           <div>
-            <Label required>Class</Label>
+            <Label required>Eligible teacher</Label>
             <Select
-              value={form.gradeId}
-              onChange={e => setForm({ ...form, gradeId: e.target.value, sectionId: '' })}
+              value={form.teacherId}
+              onChange={e => setForm({ ...form, teacherId: e.target.value })}
               required
+              disabled={form.subjectIds.length === 0}
             >
-              <option value="">Select Class</option>
-              {grades.map((grade: any) => <option key={grade._id} value={grade._id}>{grade.name}</option>)}
-            </Select>
-          </div>
-          <div>
-            <Label>Section (optional — leave blank for all sections)</Label>
-            <Select
-              value={form.sectionId}
-              onChange={e => setForm({ ...form, sectionId: e.target.value })}
-              disabled={!form.gradeId}
-            >
-              <option value="">{form.gradeId ? 'All Sections' : 'Select class first'}</option>
-              {sections.filter((s: any) => s.gradeId === form.gradeId).map((s: any) => (
-                <option key={s._id} value={s._id}>
-                  {s.name}
+              <option value="">{form.subjectIds.length ? 'Select Teacher' : 'Select subjects first'}</option>
+              {eligibleTeachers.map((teacher: any) => (
+                <option key={teacher._id} value={teacher._id}>
+                  {teacher.firstName} {teacher.lastName} ({teacher.employeeId})
                 </option>
               ))}
             </Select>
+            {form.subjectIds.length > 0 && eligibleTeachers.length === 0 && (
+              <p className="mt-2 text-xs text-muted">No teacher is qualified for all selected subjects.</p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">

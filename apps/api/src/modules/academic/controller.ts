@@ -69,7 +69,7 @@ const subjectSchema = z.object({
   name: z.string().min(1, 'Subject name is required'),
   code: z.string().min(1, 'Subject code is required'),
   description: optionalString,
-  gradeId: optionalString,
+  gradeId: z.string().min(1, 'Class is required'),
   credits: z.coerce.number().min(0).default(1),
   isElective: z.boolean().optional().default(false),
 });
@@ -77,8 +77,8 @@ const subjectSchema = z.object({
 const teacherSubjectSchema = z.object({
   teacherId: z.string().min(1, 'Teacher is required'),
   subjectId: z.string().min(1, 'Subject is required'),
-  gradeId: optionalString,
-  sectionId: optionalString,
+  gradeId: z.string().min(1, 'Class is required'),
+  sectionId: z.string().min(1, 'Section is required'),
   academicYearId: z.string().min(1, 'Academic year is required'),
 });
 

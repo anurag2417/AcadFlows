@@ -24,6 +24,18 @@ interface TeacherForm {
   emergencyRelationship: string;
 }
 
+interface TeacherSubject {
+  _id: string;
+  name: string;
+  code: string;
+  gradeId?: string;
+}
+
+interface Grade {
+  _id: string;
+  name: string;
+}
+
 const emptyForm: TeacherForm = {
   firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '',
   gender: 'other', joiningDate: new Date().toISOString().split('T')[0] || '',
@@ -36,7 +48,8 @@ export default function AddTeacherPage() {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const [form, setForm] = useState<TeacherForm>(emptyForm);
-  const [subjects, setSubjects] = useState<{ _id: string; name: string; code: string }[]>([]);
+  const [subjects, setSubjects] = useState<TeacherSubject[]>([]);
+  const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -46,9 +59,13 @@ export default function AddTeacherPage() {
     let cancelled = false;
     (async () => {
       try {
-        const subjectsRes = await api.get('/academic/subjects');
+        const [subjectsRes, gradesRes] = await Promise.all([
+          api.get('/academic/subjects'),
+          api.get('/academic/grades'),
+        ]);
         if (cancelled) return;
         setSubjects(subjectsRes.data.data || []);
+        setGrades(gradesRes.data.data || []);
         if (id) {
           const { data } = await api.get(`/teachers/${id}`);
           const teacher = data.data;
@@ -156,7 +173,7 @@ export default function AddTeacherPage() {
           <CardTitle>Subjects</CardTitle>
           <CardDescription>Select the subjects this teacher can teach.</CardDescription>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-5">
-            {subjects.map(subject => <button key={subject._id} type="button" onClick={() => toggleSubject(subject._id)} className={`px-3 py-2.5 rounded-lg border text-left text-sm ${form.subjects.includes(subject._id) ? 'border-primary-500 bg-primary-500/10 text-primary-700' : 'border-border bg-surface hover:border-primary-300'}`}><span className="font-medium">{subject.name}</span><span className="block text-xs text-muted">{subject.code}</span></button>)}
+            {subjects.map(subject => <button key={subject._id} type="button" onClick={() => toggleSubject(subject._id)} className={`px-3 py-2.5 rounded-lg border text-left text-sm ${form.subjects.includes(subject._id) ? 'border-primary-500 bg-primary-500/10 text-primary-700' : 'border-border bg-surface hover:border-primary-300'}`}><span className="font-medium">{subject.name}</span><span className="block text-xs text-muted">{subject.code} · {grades.find(grade => grade._id === subject.gradeId)?.name || 'Class not set'}</span></button>)}
           </div>
           {subjects.length === 0 && <p className="text-sm text-muted mt-5">Create subjects in Academics before adding teachers.</p>}
         </Card>

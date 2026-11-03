@@ -199,6 +199,10 @@ export class SectionService {
 // Subject Service
 export class SubjectService {
   static async create(data: any) {
+    const grade = await Grade.findOne({ _id: data.gradeId, tenantId: data.tenantId });
+    if (!grade) {
+      throw new AppError('Class not found', 404);
+    }
     const subject = await Subject.create(data);
     return subject;
   }
@@ -226,6 +230,26 @@ export class SubjectService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError('Invalid ID format', 400);
     }
+    if (data.gradeId) {
+      const grade = await Grade.findOne({ _id: data.gradeId, tenantId });
+      if (!grade) {
+        throw new AppError('Class not found', 404);
+      }
+      const existingAssignments = await TeacherSubject.countDocuments({
+        tenantId,
+        subjectId: id,
+        status: 'active',
+      });
+      if (existingAssignments > 0) {
+        const subject = await Subject.findOne({ _id: id, tenantId }).select('gradeId');
+        if (subject && subject.gradeId !== data.gradeId) {
+          throw new AppError(
+            'This subject is already assigned to teachers. Remove its assignments before changing its class.',
+            409,
+          );
+        }
+      }
+    }
     const subject = await Subject.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
@@ -252,6 +276,31 @@ export class SubjectService {
 // Teacher Subject Service
 export class TeacherSubjectService {
   static async assign(data: any) {
+    const [teacher, subject, section] = await Promise.all([
+      Teacher.findOne({ _id: data.teacherId, tenantId: data.tenantId, isDeleted: false }).select('subjects'),
+      Subject.findOne({ _id: data.subjectId, tenantId: data.tenantId }).select('gradeId'),
+      Section.findOne({ _id: data.sectionId, tenantId: data.tenantId }).select('gradeId'),
+    ]);
+    if (!teacher) throw new AppError('Teacher not found', 404);
+    if (!subject) throw new AppError('Subject not found', 404);
+    if (!section) throw new AppError('Section not found', 404);
+    if (subject.gradeId !== data.gradeId || section.gradeId !== data.gradeId) {
+      throw new AppError('The selected subject and section must belong to the selected class', 400);
+    }
+    if (!teacher.subjects?.includes(data.subjectId)) {
+      throw new AppError('This teacher is not marked as eligible for the selected subject', 400);
+    }
+    const duplicate = await TeacherSubject.exists({
+      tenantId: data.tenantId,
+      teacherId: data.teacherId,
+      subjectId: data.subjectId,
+      sectionId: data.sectionId,
+      academicYearId: data.academicYearId,
+      status: 'active',
+    });
+    if (duplicate) {
+      throw new AppError('This teacher is already assigned to this subject and section', 409);
+    }
     const teacherSubject = await TeacherSubject.create(data);
     return await TeacherSubject.findById(teacherSubject._id)
       .populate('teacherId', 'firstName lastName employeeId')
