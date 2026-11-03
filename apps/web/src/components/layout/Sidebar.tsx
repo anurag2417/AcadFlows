@@ -59,17 +59,10 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Grading',
     items: [
-      { label: 'Assignments', icon: '📝', path: '/assignments', roles: ['admin', 'teacher', 'student'] },
+      { label: 'Assignments', icon: '📝', path: '/assignments', roles: ['teacher', 'student'] },
       { label: 'Gradebook', icon: '📖', path: '/gradebook', roles: ['student'] },
       { label: 'Report Cards', icon: '🎯', path: '/report-cards', roles: ['admin', 'teacher'] },
       { label: 'Timetable', icon: '📅', path: '/timetable', roles: ['admin', 'teacher', 'student', 'guardian'] },
-    ],
-  },
-  {
-    label: 'Communication',
-    items: [
-      { label: 'Announcements', icon: '📢', path: '/announcements', roles: ['admin', 'teacher', 'student', 'guardian'] },
-      { label: 'Messages', icon: '💬', path: '/messages', roles: ['admin', 'teacher', 'student', 'guardian'] },
     ],
   },
   {

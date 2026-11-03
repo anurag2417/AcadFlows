@@ -19,6 +19,7 @@ export default function TeacherAssignmentsPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
+  const [grades, setGrades] = useState<any[]>([]);
   const [academicYears, setAcademicYears] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -29,6 +30,7 @@ export default function TeacherAssignmentsPage() {
       fetchTeachers(),
       fetchSubjects(),
       fetchSections(),
+      fetchGrades(),
       fetchYears(),
     ]).finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -56,6 +58,11 @@ export default function TeacherAssignmentsPage() {
   const fetchSections = async () => {
     const res = await api.get('/academic/sections');
     setSections(res.data.data);
+  };
+
+  const fetchGrades = async () => {
+    const res = await api.get('/academic/grades');
+    setGrades(res.data.data);
   };
 
   const fetchYears = async () => {
@@ -175,6 +182,7 @@ export default function TeacherAssignmentsPage() {
         <AssignmentModal
           teachers={teachers}
           subjects={subjects}
+          grades={grades}
           sections={sections}
           academicYears={academicYears}
           onClose={() => setShowModal(false)}
@@ -191,6 +199,7 @@ export default function TeacherAssignmentsPage() {
 function AssignmentModal({
   teachers,
   subjects,
+  grades,
   sections,
   academicYears,
   onClose,
@@ -201,6 +210,7 @@ function AssignmentModal({
   const [form, setForm] = useState({
     teacherId: '',
     subjectId: '',
+    gradeId: '',
     sectionId: '',
     academicYearId: '',
   });
@@ -286,13 +296,25 @@ function AssignmentModal({
             </Select>
           </div>
           <div>
+            <Label required>Class</Label>
+            <Select
+              value={form.gradeId}
+              onChange={e => setForm({ ...form, gradeId: e.target.value, sectionId: '' })}
+              required
+            >
+              <option value="">Select Class</option>
+              {grades.map((grade: any) => <option key={grade._id} value={grade._id}>{grade.name}</option>)}
+            </Select>
+          </div>
+          <div>
             <Label>Section (optional — leave blank for all sections)</Label>
             <Select
               value={form.sectionId}
               onChange={e => setForm({ ...form, sectionId: e.target.value })}
+              disabled={!form.gradeId}
             >
-              <option value="">All Sections</option>
-              {sections.map((s: any) => (
+              <option value="">{form.gradeId ? 'All Sections' : 'Select class first'}</option>
+              {sections.filter((s: any) => s.gradeId === form.gradeId).map((s: any) => (
                 <option key={s._id} value={s._id}>
                   {s.name}
                 </option>

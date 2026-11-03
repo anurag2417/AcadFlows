@@ -46,7 +46,6 @@ export default function NotFoundPage() {
               { to: '/students', label: 'Students', icon: '👨‍🎓' },
               { to: '/teachers', label: 'Teachers', icon: '👨‍🏫' },
               { to: '/attendance/reports', label: 'Attendance', icon: '📊' },
-              { to: '/announcements', label: 'Announcements', icon: '📢' },
               { to: '/timetable', label: 'Timetable', icon: '📅' },
             ].map(link => (
               <Link

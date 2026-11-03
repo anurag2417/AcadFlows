@@ -63,7 +63,6 @@ export function auditLog(req: Request, res: Response, next: NextFunction) {
 
   // Skip noisy paths
   if (req.path.startsWith('/api/v1/auth/refresh')) return next();
-  if (req.path.startsWith('/api/v1/communication')) return next();
 
   const startTime = Date.now();
 

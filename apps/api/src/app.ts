@@ -20,7 +20,6 @@ import userRoutes from './modules/user/routes';
 import academicRoutes from './modules/academic/routes';
 import teacherRoutes from './modules/teachers/routes';
 import assignmentRoutes from './modules/assignments/routes';
-import communicationRoutes from './modules/communication/routes';
 import timetableRoutes from './modules/timetable/routes';
 import attendanceRoutes from './modules/attendance/routes';
 
@@ -104,7 +103,6 @@ app.use('/api/v1/academic', authenticate, ensureTenantMatch, academicRoutes);
 app.use('/api/v1/dashboard', authenticate, ensureTenantMatch, dashboardRoutes);
 app.use('/api/v1/teachers', authenticate, ensureTenantMatch, teacherRoutes);
 app.use('/api/v1/assignments', authenticate, ensureTenantMatch, assignmentRoutes);
-app.use('/api/v1/communication', authenticate, ensureTenantMatch, communicationRoutes);
 app.use('/api/v1/timetable', authenticate, ensureTenantMatch, timetableRoutes);
 app.use('/api/v1/attendance', authenticate, ensureTenantMatch, attendanceRoutes);
 

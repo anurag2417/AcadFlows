@@ -32,8 +32,6 @@ import CreateAssignmentPage from './pages/admin/CreateAssignment';
 import AssignmentSubmissionsPage from './pages/admin/AssignmentSubmissions';
 import GradebookPage from './pages/student/Gradebook';
 import ReportCardsPage from './pages/admin/ReportCards';
-import AnnouncementsPage from './pages/Announcements';
-import MessagesPage from './pages/Messages';
 import TimetablesPage from './pages/admin/Timetables';
 import CreateTimetablePage from './pages/admin/CreateTimetable';
 import TimetableViewPage from './pages/TimetableView';
@@ -97,16 +95,14 @@ function App() {
 
             <Route path="/teacher/class-roster" element={<Protected requiredRole="teacher"><ClassRosterPage /></Protected>} />
 
-            <Route path="/assignments" element={<Protected allowedRoles={['admin', 'teacher', 'student']}><AssignmentsPage /></Protected>} />
-            <Route path="/assignments/create" element={<Protected allowedRoles={['admin', 'teacher']}><CreateAssignmentPage /></Protected>} />
-            <Route path="/assignments/:id/edit" element={<Protected allowedRoles={['admin', 'teacher']}><CreateAssignmentPage /></Protected>} />
-            <Route path="/assignments/:id/submissions" element={<Protected allowedRoles={['admin', 'teacher']}><AssignmentSubmissionsPage /></Protected>} />
-            <Route path="/assignments/:id" element={<Protected allowedRoles={['admin', 'teacher', 'student']}><AssignmentSubmissionsPage /></Protected>} />
+            <Route path="/assignments" element={<Protected allowedRoles={['teacher', 'student']}><AssignmentsPage /></Protected>} />
+            <Route path="/assignments/create" element={<Protected requiredRole="teacher"><CreateAssignmentPage /></Protected>} />
+            <Route path="/assignments/:id/edit" element={<Protected requiredRole="teacher"><CreateAssignmentPage /></Protected>} />
+            <Route path="/assignments/:id/submissions" element={<Protected requiredRole="teacher"><AssignmentSubmissionsPage /></Protected>} />
+            <Route path="/assignments/:id" element={<Protected allowedRoles={['teacher', 'student']}><AssignmentSubmissionsPage /></Protected>} />
             <Route path="/gradebook" element={<Protected requiredRole="student"><GradebookPage /></Protected>} />
             <Route path="/report-cards" element={<Protected allowedRoles={['admin', 'teacher']}><ReportCardsPage /></Protected>} />
 
-            <Route path="/announcements" element={<Protected><AnnouncementsPage /></Protected>} />
-            <Route path="/messages" element={<Protected><MessagesPage /></Protected>} />
             <Route path="/timetable" element={<Protected><TimetablesPage /></Protected>} />
             <Route path="/timetable/create" element={<Protected requiredRole="admin"><CreateTimetablePage /></Protected>} />
             <Route path="/timetable/:id" element={<Protected><TimetableViewPage /></Protected>} />

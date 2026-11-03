@@ -126,7 +126,7 @@ export default function SettingsPage() {
     <DashboardLayout>
       <PageHeader
         title="Settings"
-        description="Configure your school's identity, grading, and communication preferences"
+        description="Configure your school's identity and grading preferences"
         breadcrumb={[
           { label: 'Dashboard', path: '/dashboard' },
           { label: 'Settings' },

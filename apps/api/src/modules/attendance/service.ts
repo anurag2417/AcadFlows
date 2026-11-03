@@ -152,8 +152,6 @@ export class AttendanceService {
       await session.commitTransaction();
       session.endSession();
 
-      await this.sendAttendanceNotifications(tenantId, date, data.sectionId, 'student');
-
       return {
         session: attendanceSession[0],
         stats,
@@ -638,43 +636,6 @@ export class AttendanceService {
             : 0,
       },
     };
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // Notifications (stub — logs to console)
-  // ═══════════════════════════════════════════════════════════
-
-  private static async sendAttendanceNotifications(
-    tenantId: string,
-    date: Date,
-    sectionId: string,
-    type: 'student' | 'teacher',
-  ) {
-    const absentStudents = await Attendance.find({
-      tenantId,
-      date,
-      sectionId,
-      type: 'student',
-      status: 'absent',
-    });
-
-    if (absentStudents.length === 0) return;
-
-    console.log(
-      `📧 Sending attendance notifications for ${absentStudents.length} students`,
-    );
-    console.log(`📅 Date: ${date.toISOString().split('T')[0]}`);
-
-    for (const record of absentStudents) {
-      const student = await Student.findById(record.entityId);
-      if (student) {
-        console.log(`❌ Absent: ${student.firstName} ${student.lastName}`);
-        if (student.guardians && student.guardians.length > 0) {
-          const guardian = student.guardians[0];
-          console.log(`📱 Guardian: ${guardian.name} (${guardian.phone})`);
-        }
-      }
-    }
   }
 
   // ═══════════════════════════════════════════════════════════

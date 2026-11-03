@@ -11,6 +11,7 @@ interface Section {
   name: string;
   gradeId: string;
 }
+interface Grade { _id: string; name: string; }
 
 interface AcademicYear {
   _id: string;
@@ -53,15 +54,18 @@ export default function AttendanceReportsPage() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
 
   const [academicYearId, setAcademicYearId] = useState('');
+  const [gradeId, setGradeId] = useState('');
   const [sectionId, setSectionId] = useState('');
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
 
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [grades, setGrades] = useState<Grade[]>([]);
 
   useEffect(() => {
     fetchAcademicYears();
+    fetchGrades();
     fetchSections();
   }, []);
 
@@ -82,6 +86,15 @@ export default function AttendanceReportsPage() {
       setSections(response.data.data);
     } catch (error) {
       console.error('Failed to fetch sections:', error);
+    }
+  };
+
+  const fetchGrades = async () => {
+    try {
+      const response = await api.get('/academic/grades');
+      setGrades(response.data.data);
+    } catch (error) {
+      console.error('Failed to fetch grades:', error);
     }
   };
 
@@ -137,7 +150,7 @@ export default function AttendanceReportsPage() {
       />
 
       <Card className="mb-6">
-        <form onSubmit={handleGenerateReport} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <form onSubmit={handleGenerateReport} className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="md:col-span-2">
             <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
               Academic Year *
@@ -155,6 +168,13 @@ export default function AttendanceReportsPage() {
               ))}
             </Select>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">Class *</label>
+            <Select value={gradeId} onChange={e => { setGradeId(e.target.value); setSectionId(''); }} required>
+              <option value="">Select Class</option>
+              {grades.map(grade => <option key={grade._id} value={grade._id}>{grade.name}</option>)}
+            </Select>
+          </div>
           <div className="md:col-span-2">
             <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
               Section *
@@ -164,8 +184,8 @@ export default function AttendanceReportsPage() {
               onChange={e => setSectionId(e.target.value)}
               required
             >
-              <option value="">Select Section</option>
-              {sections.map(section => (
+              <option value="">{gradeId ? 'Select Section' : 'Select Class First'}</option>
+              {sections.filter(section => !gradeId || section.gradeId === gradeId).map(section => (
                 <option key={section._id} value={section._id}>
                   {section.name}
                 </option>
@@ -197,7 +217,7 @@ export default function AttendanceReportsPage() {
               onChange={e => setYear(parseInt(e.target.value))}
             />
           </div>
-          <div className="md:col-span-5">
+          <div className="md:col-span-6">
             <Button type="submit" variant="primary" fullWidth leftIcon="📊">
               Generate Report
             </Button>

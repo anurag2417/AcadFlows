@@ -7,12 +7,12 @@ const router: Router = Router();
 // Auth + tenant match are applied in app.ts.
 
 router.get('/', AssignmentController.getAssignments);
-router.post('/', requireRole('admin', 'teacher'), AssignmentController.createAssignment);
+router.post('/', requireRole('teacher'), AssignmentController.createAssignment);
 
 router.get('/submissions', AssignmentController.getSubmissions);
 router.post('/submissions', AssignmentController.submitAssignment);
 router.get('/submissions/:id', AssignmentController.getSubmissionById);
-router.put('/submissions/:id/grade', requireRole('admin', 'teacher'), AssignmentController.gradeSubmission);
+router.put('/submissions/:id/grade', requireRole('teacher'), AssignmentController.gradeSubmission);
 
 router.get('/gradebook/:studentId/:academicYearId', AssignmentController.getGradebook);
 router.get('/progress/:studentId/:academicYearId', AssignmentController.getStudentProgress);
@@ -22,9 +22,9 @@ router.post('/report-cards', requireRole('admin', 'teacher'), AssignmentControll
 router.get('/report-cards/:id', AssignmentController.getReportCardById);
 router.put('/report-cards/:id/publish', requireRole('admin', 'teacher'), AssignmentController.publishReportCard);
 
-router.get('/:id/stats', requireRole('admin', 'teacher'), AssignmentController.getAssignmentStats);
+router.get('/:id/stats', requireRole('teacher'), AssignmentController.getAssignmentStats);
 router.get('/:id', AssignmentController.getAssignmentById);
-router.put('/:id', requireRole('admin', 'teacher'), AssignmentController.updateAssignment);
-router.delete('/:id', requireRole('admin', 'teacher'), AssignmentController.deleteAssignment);
+router.put('/:id', requireRole('teacher'), AssignmentController.updateAssignment);
+router.delete('/:id', requireRole('teacher'), AssignmentController.deleteAssignment);
 
 export default router;

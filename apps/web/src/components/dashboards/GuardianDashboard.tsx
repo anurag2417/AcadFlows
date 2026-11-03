@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Card, CardTitle } from '../ui';
 
 interface GuardianDashboardProps {
@@ -122,24 +121,6 @@ export default function GuardianDashboard({ data, tenant, user }: GuardianDashbo
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { to: '/announcements', icon: '📢', title: 'Announcements', subtitle: 'School updates' },
-          { to: '/messages', icon: '💬', title: 'Messages', subtitle: 'Contact the school' },
-        ].map(action => (
-          <Link
-            key={action.to}
-            to={action.to}
-            className="flex items-center gap-3 p-4 rounded-lg bg-surface border border-border transition-all hover:border-primary-300 hover:shadow-md dark:hover:border-primary-500/50"
-          >
-            <span className="text-2xl">{action.icon}</span>
-            <div>
-              <p className="font-medium text-foreground">{action.title}</p>
-              <p className="text-sm text-muted">{action.subtitle}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
     </div>
   );
 }

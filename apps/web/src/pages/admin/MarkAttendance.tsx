@@ -28,6 +28,7 @@ interface Section {
   gradeId: string;
   classTeacherId?: string;
 }
+interface Grade { _id: string; name: string; }
 
 interface AcademicYear {
   _id: string;
@@ -44,12 +45,14 @@ export default function MarkAttendancePage() {
   const [success, setSuccess] = useState('');
 
   const [academicYearId, setAcademicYearId] = useState('');
+  const [gradeId, setGradeId] = useState('');
   const [sectionId, setSectionId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [students, setStudents] = useState<Student[]>([]);
   const [attendance, setAttendance] = useState<Record<string, AttendanceRecord>>({});
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [grades, setGrades] = useState<Grade[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [myTeacherId, setMyTeacherId] = useState<string | null>(null);
   const [mySectionId, setMySectionId] = useState<string | null>(null);
@@ -65,6 +68,7 @@ export default function MarkAttendancePage() {
 
   useEffect(() => {
     fetchAcademicYears();
+    fetchGrades();
     fetchSections();
     if (isTeacher) fetchMyTeacherProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,11 +110,21 @@ export default function MarkAttendancePage() {
     }
   };
 
+  const fetchGrades = async () => {
+    try {
+      const response = await api.get('/academic/grades');
+      setGrades(response.data.data);
+    } catch (error) {
+      console.error('Failed to fetch grades:', error);
+    }
+  };
+
   // Once we know the teacher's ID and have sections, auto-select their class
   useEffect(() => {
     if (isTeacher && myTeacherId && sections.length > 0) {
       const ownSection = sections.find(s => s.classTeacherId === myTeacherId);
       if (ownSection) {
+        setGradeId(ownSection.gradeId);
         setSectionId(ownSection._id);
         setMySectionId(ownSection._id);
       }
@@ -218,7 +232,7 @@ export default function MarkAttendancePage() {
   // Teacher sees only their own section, admin sees all
   const visibleSections = isTeacher
     ? sections.filter(s => s._id === mySectionId)
-    : sections;
+    : sections.filter(section => !gradeId || section.gradeId === gradeId);
 
   return (
     <DashboardLayout>
@@ -253,7 +267,7 @@ export default function MarkAttendancePage() {
       )}
 
       <Card className="mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
               Academic Year *
@@ -272,6 +286,23 @@ export default function MarkAttendancePage() {
           </div>
           <div>
             <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+              Class *
+            </label>
+            <Select
+              value={gradeId}
+              onChange={e => {
+                setGradeId(e.target.value);
+                setSectionId('');
+              }}
+              required
+              disabled={isTeacher}
+            >
+              <option value="">Select Class</option>
+              {grades.map(grade => <option key={grade._id} value={grade._id}>{grade.name}</option>)}
+            </Select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
               Section *
             </label>
             <Select
@@ -279,7 +310,7 @@ export default function MarkAttendancePage() {
               onChange={e => !isTeacher && setSectionId(e.target.value)}
               disabled={isTeacher}
             >
-              <option value="">Select Section</option>
+              <option value="">{gradeId || isTeacher ? 'Select Section' : 'Select Class First'}</option>
               {visibleSections.map(section => (
                 <option key={section._id} value={section._id}>
                   {section.name}

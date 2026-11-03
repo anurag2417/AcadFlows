@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/api';
-import { formatTimeAgo } from '../../lib/format';
-import { Card, CardTitle, Button } from '../ui';
+import { Card, CardTitle } from '../ui';
 import { cn } from '../../lib/cn';
 
 interface AdminDashboardProps {
@@ -19,50 +18,18 @@ interface Activity {
   type: string;
 }
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  read: boolean;
-  createdAt: string;
-}
-
 export default function AdminDashboard({
   data,
   tenant,
   user,
 }: AdminDashboardProps) {
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchNotifications();
     fetchRecentActivities();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await api.get('/communication/notifications?limit=5');
-      const items = response.data.data?.items || [];
-      setNotifications(
-        items.map((item: any) => ({
-          id: item._id,
-          title: item.title,
-          message: item.message,
-          type: item.type || 'info',
-          read: item.read || false,
-          createdAt: item.createdAt,
-        })),
-      );
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-      setNotifications([]);
-    }
-  };
 
   const fetchRecentActivities = async () => {
     try {
@@ -74,28 +41,6 @@ export default function AdminDashboard({
       setRecentActivities([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const markAsRead = async (id: string) => {
-    try {
-      await api.put(`/communication/notifications/${id}/read`);
-      setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: true } : n)),
-      );
-    } catch (error) {
-      console.error('Failed to mark as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await api.put('/communication/notifications/read-all');
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
     }
   };
 
@@ -126,8 +71,6 @@ export default function AdminDashboard({
 
   const quickActions: any[] = data?.quickActions ?? [];
 
-  const quickStats = data?.quickStats ?? { newMessages: 0 };
-
   const bubbleColors: Record<string, string> = {
     blue: 'bg-blue-50 dark:bg-blue-900/20',
     green: 'bg-green-50 dark:bg-green-900/20',
@@ -152,94 +95,6 @@ export default function AdminDashboard({
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowNotifications(v => !v)}
-                className="relative p-2 rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors"
-                aria-label="Notifications"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-lg shadow-lg border border-border bg-surface overflow-hidden z-50">
-                  <div className="p-3 border-b border-border flex justify-between items-center">
-                    <h3 className="font-semibold text-foreground">
-                      Notifications
-                    </h3>
-                    {unreadCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={markAllAsRead}
-                        className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400"
-                      >
-                        Mark all as read
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <div className="p-4 text-center text-sm text-muted">
-                        No notifications
-                      </div>
-                    ) : (
-                      notifications.map(n => (
-                        <button
-                          key={n.id}
-                          type="button"
-                          onClick={() => markAsRead(n.id)}
-                          className={cn(
-                            'w-full text-left p-3 border-b border-border transition-colors hover:bg-elevated',
-                            !n.read && 'bg-blue-50 dark:bg-blue-900/10',
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="text-lg">
-                              {n.type === 'success' && '✅'}
-                              {n.type === 'warning' && '⚠️'}
-                              {n.type === 'error' && '❌'}
-                              {n.type === 'info' && 'ℹ️'}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">
-                                {n.title}
-                              </p>
-                              <p className="text-xs text-muted">{n.message}</p>
-                              <p className="text-xs text-muted mt-1">
-                                {formatTimeAgo(n.createdAt)}
-                              </p>
-                            </div>
-                            {!n.read && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                            )}
-                          </div>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
             {tenant?.schoolCode && (
               <div className="px-4 py-2 rounded-lg bg-elevated">
                 <p className="text-xs text-muted">School Code</p>
@@ -352,25 +207,6 @@ export default function AdminDashboard({
             </Link>
           </Card>
 
-          {/* Quick Stats */}
-          <Card>
-            <CardTitle className="mb-4">Quick Stats</CardTitle>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted">New Messages</span>
-                <span
-                  className={cn(
-                    'font-semibold',
-                    quickStats.newMessages > 0
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-foreground',
-                  )}
-                >
-                  {quickStats.newMessages || 0}
-                </span>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
     </div>

@@ -49,7 +49,6 @@ interface QuickAction {
 interface QuickStats {
   totalStudents: number;
   totalTeachers: number;
-  newMessages: number;
 }
 
 interface AdminData {
@@ -293,23 +292,6 @@ export class DashboardService {
       safeCount(Teacher, { tenantId, isDeleted: false }),
     ]);
 
-    let newMessages = 0;
-    try {
-      const Message = mongoose.model('Message');
-      const teachers = await Teacher.find({ tenantId, isDeleted: false }).select(
-        'userId',
-      );
-      const teacherIds = teachers.map(t => t.userId);
-      newMessages = await Message.countDocuments({
-        tenantId,
-        recipientId: { $in: teacherIds },
-        isRead: false,
-        isDeleted: false,
-      });
-    } catch {
-      /* Message model not available */
-    }
-
     return {
       quickActions: [
         { label: 'Add Student', icon: '➕', path: '/students/add', color: 'blue' },
@@ -326,17 +308,10 @@ export class DashboardService {
           path: '/attendance/reports',
           color: 'red',
         },
-        {
-          label: 'Send Announcement',
-          icon: '📢',
-          path: '/announcements',
-          color: 'teal',
-        },
       ],
       quickStats: {
         totalStudents,
         totalTeachers,
-        newMessages,
       },
     };
   }

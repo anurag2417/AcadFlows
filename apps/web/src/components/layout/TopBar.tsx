@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTenant } from '../../contexts/TenantContext';
 import ThemeToggle from '../ThemeToggle';
-import NotificationBadge from '../NotificationBadge';
 import { cn } from '../../lib/cn';
 
 interface TopBarProps {
@@ -21,8 +20,6 @@ const routeTitles: Record<string, string> = {
   '/gradebook': 'Gradebook',
   '/report-cards': 'Report Cards',
   '/timetable': 'Timetable',
-  '/announcements': 'Announcements',
-  '/messages': 'Messages',
   '/profile': 'Profile',
 };
 
@@ -115,8 +112,6 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
       {/* Right: actions */}
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
         <ThemeToggle />
-
-        <NotificationBadge />
 
         {/* Profile link */}
         <Link

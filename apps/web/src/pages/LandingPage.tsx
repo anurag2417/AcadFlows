@@ -51,9 +51,9 @@ const FEATURES: FeatureItem[] = [
   },
   {
     icon: '⌁',
-    title: 'Communication',
+    title: 'Simple school operations',
     description:
-      'Announcements, notifications, and parent-teacher messaging.',
+      'Manage academics, attendance, assignments, and grades without unnecessary complexity.',
   },
 ];
 
@@ -99,7 +99,7 @@ const HOW_IT_WORKS = [
   {
     step: '4',
     title: 'Run the school day',
-    description: 'Attendance, assignments, grades, and communication — together.',
+    description: 'Attendance, assignments, grades, and academic records — together.',
   },
 ];
 
@@ -304,7 +304,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mt-6 max-w-xl text-[17px] leading-7 text-muted sm:text-lg sm:leading-8">
-                One platform for academics, attendance, communication,
+                One platform for academics, attendance, and academic records,
                 and performance. Give your team more time to focus on students.
               </p>
 
