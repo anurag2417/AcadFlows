@@ -69,8 +69,11 @@ export default function ReportCardsPage() {
   const fetchAcademicYears = async () => {
     try {
       const response = await api.get('/academic/academic-years');
-      setAcademicYears(response.data.data);
-      const current = response.data.data.find((y: any) => y.isCurrent);
+      const years = response.data.data || [];
+      setAcademicYears(years);
+      const current = years.find((y: any) => y.isCurrent && y.status === 'active')
+        || years.find((y: any) => y.status === 'active')
+        || years[0];
       if (current) setSelectedYear(current._id);
     } catch (error) {
       console.error('Failed to fetch academic years:', error);
@@ -126,6 +129,7 @@ export default function ReportCardsPage() {
             variant="primary"
             leftIcon="➕"
             onClick={() => setShowGenerateModal(true)}
+            disabled={!selectedYear}
           >
             Generate Report Card
           </Button>
@@ -165,6 +169,7 @@ export default function ReportCardsPage() {
             className="mt-4"
             leftIcon="➕"
             onClick={() => setShowGenerateModal(true)}
+            disabled={!selectedYear}
           >
             Generate First Report Card
           </Button>

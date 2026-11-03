@@ -17,6 +17,8 @@ interface TimetableFormData {
   description: string;
   type: string;
   academicYearId: string;
+  gradeId: string;
+  sectionId: string;
   startDate: string;
   endDate: string;
 }
@@ -28,11 +30,15 @@ export default function CreateTimetablePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [academicYears, setAcademicYears] = useState<any[]>([]);
+  const [grades, setGrades] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
   const [formData, setFormData] = useState<TimetableFormData>({
     name: '',
     description: '',
     type: 'regular',
     academicYearId: '',
+    gradeId: '',
+    sectionId: '',
     startDate: '',
     endDate: '',
   });
@@ -41,6 +47,7 @@ export default function CreateTimetablePage() {
 
   useEffect(() => {
     fetchAcademicYears();
+    api.get('/academic/grades').then(response => setGrades(response.data.data || []));
     if (isEditMode) fetchTimetable();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -48,8 +55,11 @@ export default function CreateTimetablePage() {
   const fetchAcademicYears = async () => {
     try {
       const response = await api.get('/academic/academic-years');
-      setAcademicYears(response.data.data);
-      const current = response.data.data.find((y: any) => y.isCurrent);
+      const years = response.data.data || [];
+      setAcademicYears(years);
+      const current = years.find((y: any) => y.isCurrent && y.status === 'active')
+        || years.find((y: any) => y.status === 'active')
+        || years[0];
       if (current && !isEditMode) {
         setFormData(prev => ({ ...prev, academicYearId: current._id }));
       }
@@ -63,11 +73,17 @@ export default function CreateTimetablePage() {
     try {
       const response = await api.get(`/timetable/${id}`);
       const data = response.data.data;
+      if (data.gradeId) {
+        const sectionsResponse = await api.get(`/academic/sections?gradeId=${data.gradeId}`);
+        setSections(sectionsResponse.data.data || []);
+      }
       setFormData({
         name: data.name,
         description: data.description || '',
         type: data.type,
         academicYearId: data.academicYearId,
+        gradeId: data.gradeId || '',
+        sectionId: data.sectionId || '',
         startDate: data.startDate.split('T')[0],
         endDate: data.endDate.split('T')[0],
       });
@@ -80,7 +96,22 @@ export default function CreateTimetablePage() {
   };
 
   const handleChange = (field: string, value: any) =>
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value, ...(field === 'gradeId' ? { sectionId: '' } : {}) }));
+
+  const handleGradeChange = async (value: string) => {
+    handleChange('gradeId', value);
+    if (!value) {
+      setSections([]);
+      return;
+    }
+    try {
+      const response = await api.get(`/academic/sections?gradeId=${value}`);
+      setSections(response.data.data || []);
+    } catch {
+      setSections([]);
+      setError('Failed to load sections for the selected class');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,6 +203,33 @@ export default function CreateTimetablePage() {
                 rows={3}
                 placeholder="Additional details about this timetable"
               />
+            </div>
+            <div>
+              <Label required>Class</Label>
+              <Select
+                value={formData.gradeId}
+                onChange={e => handleGradeChange(e.target.value)}
+                required
+              >
+                <option value="">Select Class</option>
+                {grades.map(grade => (
+                  <option key={grade._id} value={grade._id}>{grade.name}</option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <Label required>Section</Label>
+              <Select
+                value={formData.sectionId}
+                onChange={e => handleChange('sectionId', e.target.value)}
+                required
+                disabled={!formData.gradeId}
+              >
+                <option value="">Select Section</option>
+                {sections.map(section => (
+                  <option key={section._id} value={section._id}>{section.name}</option>
+                ))}
+              </Select>
             </div>
             <div>
               <Label required>Academic Year</Label>

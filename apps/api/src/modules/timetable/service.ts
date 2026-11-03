@@ -6,6 +6,7 @@ import { Grade } from '../../models/Grade';
 import { Teacher } from '../../models/Teacher';
 import { AppError } from '../../middleware/error-handler';
 import { attachRefs } from '../../utils/attach-refs';
+import { AcademicYear } from '../../models/AcademicYear';
 
 const timetableEntryRefs = {
   subjectId: { model: Subject, fields: 'name code' },
@@ -19,6 +20,24 @@ export class TimetableService {
   // ============ Timetable Management ============
 
   static async createTimetable(tenantId: string, data: any) {
+    const [academicYear, grade, section] = await Promise.all([
+      AcademicYear.findOne({ _id: data.academicYearId, tenantId, status: 'active' }).select('_id'),
+      Grade.findOne({ _id: data.gradeId, tenantId, status: 'active' }).select('_id'),
+      Section.findOne({ _id: data.sectionId, tenantId, gradeId: data.gradeId, status: 'active' }).select('_id'),
+    ]);
+    if (!academicYear || !grade || !section) {
+      throw new AppError('Academic year, class, and section must belong to the active school', 400);
+    }
+    const existing = await Timetable.findOne({
+      tenantId,
+      academicYearId: data.academicYearId,
+      sectionId: data.sectionId,
+      type: data.type || 'regular',
+      isActive: true,
+    });
+    if (existing) {
+      throw new AppError('An active timetable already exists for this class-section and timetable type', 409);
+    }
     const timetable = await Timetable.create({
       tenantId,
       ...data,
@@ -102,6 +121,18 @@ export class TimetableService {
       throw new AppError('Invalid timetable ID', 400);
     }
 
+    if (data.gradeId || data.sectionId || data.academicYearId) {
+      const current = await Timetable.findOne({ _id: id, tenantId }).select('gradeId sectionId academicYearId type isActive');
+      if (!current) throw new AppError('Timetable not found', 404);
+      const gradeId = data.gradeId || current.gradeId;
+      const sectionId = data.sectionId || current.sectionId;
+      const academicYearId = data.academicYearId || current.academicYearId;
+      const section = await Section.findOne({ _id: sectionId, tenantId, gradeId, status: 'active' }).select('_id');
+      const academicYear = await AcademicYear.findOne({ _id: academicYearId, tenantId, status: 'active' }).select('_id');
+      if (!section || !academicYear) {
+        throw new AppError('The selected section must belong to the selected class and academic year', 400);
+      }
+    }
     const timetable = await Timetable.findOneAndUpdate(
       { _id: id, tenantId },
       { $set: data },
@@ -139,6 +170,9 @@ export class TimetableService {
     const timetable = await Timetable.findOne({ _id: timetableId, tenantId });
     if (!timetable) {
       throw new AppError('Timetable not found', 404);
+    }
+    if (data.gradeId !== timetable.gradeId || data.sectionId !== timetable.sectionId) {
+      throw new AppError('Timetable entry class and section must match the timetable', 400);
     }
 
     // Validate time format
@@ -188,7 +222,17 @@ export class TimetableService {
     if (!currentEntry) {
       throw new AppError('Timetable entry not found', 404);
     }
+    const timetable = await Timetable.findOne({
+      _id: currentEntry.timetableId,
+      tenantId,
+    }).select('gradeId sectionId');
+    if (!timetable) {
+      throw new AppError('Timetable not found', 404);
+    }
     const merged = { ...currentEntry, ...data };
+    if (merged.gradeId !== timetable.gradeId || merged.sectionId !== timetable.sectionId) {
+      throw new AppError('Timetable entry class and section must match the timetable', 400);
+    }
     this.validateTime(merged.startTime, merged.endTime);
     const [subject, section, grade, teacher, room] = await Promise.all([
       Subject.findOne({ _id: merged.subjectId, tenantId }).select('_id'),
@@ -327,7 +371,16 @@ export class TimetableService {
     endDate?: Date,
   ) {
     const timetableQuery: any = { tenantId, isActive: true };
-    if (academicYearId) timetableQuery.academicYearId = academicYearId;
+    if (academicYearId) {
+      timetableQuery.academicYearId = academicYearId;
+    } else {
+      const currentYear = await AcademicYear.findOne({
+        tenantId,
+        isCurrent: true,
+        status: 'active',
+      }).select('_id').lean();
+      if (currentYear) timetableQuery.academicYearId = currentYear._id.toString();
+    }
     if (startDate || endDate) {
       timetableQuery.startDate = { $lte: endDate || new Date() };
       timetableQuery.endDate = { $gte: startDate || new Date(0) };

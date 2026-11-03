@@ -8,6 +8,7 @@ import { Attendance } from '../../models/Attendance';
 import { escapeRegex } from '../../utils/search';
 import { AppError } from '../../middleware/error-handler';
 import { attachRefs } from '../../utils/attach-refs';
+import { AcademicYear } from '../../models/AcademicYear';
 
 // Reusable populate maps
 const assignmentRefs = {
@@ -457,6 +458,22 @@ export class AssignmentService {
 
     if (!student) {
       throw new AppError('Student not found', 404);
+    }
+    const academicYear = await AcademicYear.findOne({
+      _id: data.academicYearId,
+      tenantId,
+      status: 'active',
+    }).select('_id');
+    if (!academicYear) {
+      throw new AppError('Academic year not found or inactive', 400);
+    }
+    const enrollment = (student.enrollments || []).find(
+      enrollment =>
+        enrollment.academicYearId === data.academicYearId &&
+        enrollment.status === 'active',
+    );
+    if (!enrollment) {
+      throw new AppError('Student is not enrolled in the selected academic year', 400);
     }
 
     const gradebooks = await Gradebook.find({

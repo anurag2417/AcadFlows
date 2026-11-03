@@ -6,6 +6,8 @@ import { AuthRequest } from '../../middleware/auth';
 // Validation Schemas
 const createTimetableBaseSchema = z.object({
   academicYearId: z.string().min(1),
+  gradeId: z.string().min(1),
+  sectionId: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
   type: z.enum(['regular', 'exam', 'holiday', 'special']).default('regular'),

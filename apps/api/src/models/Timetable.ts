@@ -3,6 +3,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ITimetable extends Document {
   tenantId: string;
   academicYearId: string;
+  gradeId: string;
+  sectionId: string;
   name: string;
   description?: string;
   type: 'regular' | 'exam' | 'holiday' | 'special';
@@ -153,6 +155,16 @@ const timetableSchema = new Schema<ITimetable>(
       required: true,
       index: true,
     },
+    gradeId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    sectionId: {
+      type: String,
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,
@@ -267,6 +279,10 @@ const timeSlotSchema = new Schema<ITimeSlot>(
 
 // Indexes
 timetableSchema.index({ tenantId: 1, academicYearId: 1, isActive: 1 });
+timetableSchema.index(
+  { tenantId: 1, academicYearId: 1, sectionId: 1, type: 1 },
+  { unique: true, partialFilterExpression: { isActive: true } },
+);
 timetableSchema.index({ tenantId: 1, type: 1, startDate: 1, endDate: 1 });
 
 timetableEntrySchema.index({ tenantId: 1, timetableId: 1, dayOfWeek: 1 });
