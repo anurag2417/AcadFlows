@@ -47,6 +47,7 @@ AcadFlows maintains an enterprise-grade documentation ecosystem across engineeri
 | [Engineering Manual](docs/DEVELOPMENT.md) | **Development** | Local workspace setup, seeds, TypeScript strict rules, and contribution workflow. |
 | [Platform Admin SOP](docs/PLATFORM_ADMIN_GUIDE.md) | **Operations** | Playbook for verifying, approving, and auditing schools via the platform admin dashboard. |
 | [Incident Response](docs/INCIDENT_RESPONSE.md) | **Reliability** | Severity levels (SEV-0 to SEV-3), containment playbooks, and disaster recovery. |
+| [Upcoming Features PRD](docs/UPCOMING_FEATURES.md) | **Roadmap** | Specifications for Mobile App, Digital Fees, Perplexity AI Workspace, Shiksha Sathi, & VisionFlow Face Attendance. |
 | [Product Roadmap](docs/SAAS_PRODUCT.md) | **Product** | High-level product vision, feature capabilities, and market readiness roadmap. |
 | [Contributing Guide](CONTRIBUTING.md) | **Community** | Code standards, Git commit guidelines, and pull request procedures. |
 | [Code of Conduct](CODE_OF_CONDUCT.md) | **Community** | Contributor Covenant standards and community safety guidelines. |
@@ -169,6 +170,20 @@ AcadFlows treats school data privacy as an inviolable boundary:
 - **Compound Database Keys**: Index-level guarantees enforce unique constraints strictly within tenant boundaries.
 - **Compliance Ready**: Engineered to align with **FERPA**, **COPPA**, and **GDPR** educational privacy guidelines.
 - **Vulnerability Reporting**: Report security findings confidentially to `acadflows00@gmail.com`.
+
+---
+
+## 🔮 Upcoming Breakthrough Innovations
+
+We are actively engineering five major product extensions to transform school operations and learning:
+
+1. 📱 **Mobile App & Unified Communication Hub**: React Native iOS & Android application featuring secure teacher-parent chat, push broadcasts, circular acknowledgments, and emergency dispatches.
+2. 💳 **Omnichannel Digital Fee Payments**: 1-click UPI, card, and NetBanking fee payments across both web and mobile, automated installment scheduling, and instant tax-compliant PDF receipts.
+3. 🧠 **Perplexity AI Educational Workspace**: Full-stack Q&A and research environment for students and teachers featuring persistent conversation threads, verified academic source citations, and safe Socratic tutoring.
+4. 🇮🇳 **Shiksha Sathi (NCERT / CBSE / NEP 2020 Platform)**: Purpose-built Indian curriculum engine with curated question banks, 1-click AI homework generation, and rubric-based auto-feedback — provided at zero cost.
+5. 📷 **VisionFlow: Classroom Group Face Attendance**: AI computer vision attendance allowing teachers to snap a single class photo on mobile, automatically detect and match students against enrolled embeddings, and mark roll-call in under 5 seconds.
+
+*Read the detailed technical specifications and architecture in the [Upcoming Features PRD](docs/UPCOMING_FEATURES.md).*
 
 ---
 
