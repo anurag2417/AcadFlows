@@ -1,4 +1,4 @@
-import { BaseEntity, TenantScoped, Role, Status } from './common';
+import type { BaseEntity, TenantScoped, Role, Status } from './common';
 
 export interface User extends BaseEntity, TenantScoped {
   email: string;

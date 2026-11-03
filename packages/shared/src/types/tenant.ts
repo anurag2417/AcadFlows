@@ -1,4 +1,4 @@
-import { BaseEntity, Status } from './common';
+import type { BaseEntity, Status } from './common';
 
 export interface Tenant extends BaseEntity {
   name: string;

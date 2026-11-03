@@ -1,4 +1,4 @@
-import { BaseEntity, TenantScoped } from './common';
+import type { BaseEntity, TenantScoped } from './common';
 
 export interface FeeStructure extends BaseEntity, TenantScoped {
   academicYearId: string;
