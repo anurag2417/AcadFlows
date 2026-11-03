@@ -6,214 +6,41 @@ import {
   Clock,
   CreditCard,
   CheckCircle2,
-  ShieldCheck,
   Sparkles,
   Smartphone,
   BrainCircuit,
   Camera,
   Zap,
   ArrowRight,
-  ChevronDown,
-  Activity,
-  Layers,
-  BookOpen,
-  Bell,
+  ShieldCheck,
   Check,
-  FileText,
-  Lock,
+  Search,
+  ChevronDown,
+  Layers,
+  GraduationCap,
+  Users,
+  TrendingUp,
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
-import Logo, { LogoIcon } from '../components/ui/Logo';
+import Logo from '../components/ui/Logo';
 
 /* ─────────────────────────────────────────────────────────────
-   ROLE PREVIEWS DATA (Clean, Visual, Punchy)
+   INTERACTIVE MINI-ROSTER FOR ATTENDANCE WIDGET
    ───────────────────────────────────────────────────────────── */
 
-type RoleKey = 'admin' | 'teacher' | 'student' | 'guardian' | 'platform';
-
-interface RolePreview {
-  id: RoleKey;
-  label: string;
-  badge: string;
-  title: string;
-  tagline: string;
-  chips: string[];
-  metrics: { label: string; value: string; color: string }[];
-  actionBtn: string;
+interface RosterStudent {
+  id: string;
+  name: string;
+  roll: string;
+  status: 'present' | 'absent' | 'late';
 }
 
-const ROLE_PREVIEWS: Record<RoleKey, RolePreview> = {
-  admin: {
-    id: 'admin',
-    label: 'Principal / Admin',
-    badge: 'Campus Command',
-    title: 'Institutional Control Center',
-    tagline: 'Admissions, staff allocations, conflict-free timetables, and fee structures.',
-    chips: ['Conflict-Free Schedules', 'Bulk Admissions', 'Audit Logs', 'Fee Structures'],
-    metrics: [
-      { label: 'Enrolled Students', value: '1,420', color: 'text-primary-500' },
-      { label: 'Today Attendance', value: '96.4%', color: 'text-emerald-500' },
-      { label: 'Fees Collected', value: '₹42.8 L', color: 'text-amber-500' },
-      { label: 'Active Faculty', value: '86', color: 'text-accent-500' },
-    ],
-    actionBtn: 'Open Admin Workspace',
-  },
-  teacher: {
-    id: 'teacher',
-    label: 'Educator',
-    badge: 'Classroom Copilot',
-    title: 'Fast Roll-Call & Smart Gradebook',
-    tagline: '10-second class attendance, homework issuance, and continuous grading.',
-    chips: ['10-Sec Roll Call', 'Rubric Grading', 'Live Roster', 'Automated Absentees'],
-    metrics: [
-      { label: 'Class Sections', value: '4 Active', color: 'text-primary-500' },
-      { label: 'Roll-Call Today', value: 'Verified', color: 'text-emerald-500' },
-      { label: 'Pending Submissions', value: '14', color: 'text-amber-500' },
-      { label: 'Class Average', value: '88.5%', color: 'text-accent-500' },
-    ],
-    actionBtn: 'Launch Classroom Desk',
-  },
-  student: {
-    id: 'student',
-    label: 'Student',
-    badge: 'Learning Hub',
-    title: 'Personal Schedule & Homework Desk',
-    tagline: 'Interactive daily timetables, instant assignment turn-in, and report cards.',
-    chips: ['Daily Timetable', 'Instant Turn-in', 'GPA Analytics', 'Verified Report Card'],
-    metrics: [
-      { label: 'Next Class', value: 'Physics (Lab 2)', color: 'text-primary-500' },
-      { label: 'Attendance Score', value: '98.2%', color: 'text-emerald-500' },
-      { label: 'Homework Due', value: '1 Tomorrow', color: 'text-amber-500' },
-      { label: 'Term Ranking', value: '#3 in Section', color: 'text-accent-500' },
-    ],
-    actionBtn: 'Open Student Desk',
-  },
-  guardian: {
-    id: 'guardian',
-    label: 'Parent',
-    badge: 'Family Transparency',
-    title: 'Real-Time Student Safety & Fees',
-    tagline: 'Instant arrival notifications, academic marks, and 1-click UPI fee settlements.',
-    chips: ['Arrival Alerts', '1-Click UPI Payment', 'Direct Teacher Chat', 'Live Marks'],
-    metrics: [
-      { label: 'Campus Arrival', value: '08:14 AM', color: 'text-emerald-500' },
-      { label: 'Term 2 Fee Status', value: 'Due in 10d', color: 'text-amber-500' },
-      { label: 'Latest Exam Score', value: '94 / 100', color: 'text-primary-500' },
-      { label: 'Teacher Notes', value: 'Excellent Focus', color: 'text-accent-500' },
-    ],
-    actionBtn: 'Pay Term Fee (UPI)',
-  },
-  platform: {
-    id: 'platform',
-    label: 'Platform Founder',
-    badge: 'Super-Admin',
-    title: 'Multi-Tenant Governance Hub',
-    tagline: 'Instant KYC approval, tenant status toggling, and global telemetry.',
-    chips: ['Instant KYC', 'Zero Cross-Leak', 'Global Health', 'Tenant Freeze'],
-    metrics: [
-      { label: 'Partner Schools', value: '18 Active', color: 'text-primary-500' },
-      { label: 'Cross-Tenant Users', value: '24,800+', color: 'text-emerald-500' },
-      { label: 'System Uptime', value: '99.98%', color: 'text-accent-500' },
-      { label: 'API Latency', value: '42 ms', color: 'text-purple-500' },
-    ],
-    actionBtn: 'Review Pending Schools',
-  },
-};
-
-/* ─────────────────────────────────────────────────────────────
-   VISUAL BENTO CARDS (Concise, Graphical)
-   ───────────────────────────────────────────────────────────── */
-
-const BENTO_FEATURES = [
-  {
-    icon: <Calendar className="w-5 h-5 text-primary-500" />,
-    badge: 'Curriculum',
-    title: 'Academic Structure',
-    desc: 'Multi-year calendar modeling with seamless section branching and grading rubrics.',
-    colSpan: 'col-span-12 md:col-span-6 lg:col-span-4',
-  },
-  {
-    icon: <Clock className="w-5 h-5 text-amber-500" />,
-    badge: 'Scheduling',
-    title: 'Conflict-Free Timetables',
-    desc: 'Algorithmic room and teacher sync that mathematically prevents double-booking.',
-    colSpan: 'col-span-12 md:col-span-6 lg:col-span-4',
-  },
-  {
-    icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
-    badge: 'Roll-Call',
-    title: '10-Second Attendance',
-    desc: 'Instant class roll-call with automated SMS/push alerts dispatched to absent parents.',
-    colSpan: 'col-span-12 md:col-span-6 lg:col-span-4',
-  },
-  {
-    icon: <CreditCard className="w-5 h-5 text-accent-500" />,
-    badge: 'Billing',
-    title: 'Fee Invoices & Receipts',
-    desc: 'Itemized tuition, transport, and lab fee tracking with partial installments and PDF receipts.',
-    colSpan: 'col-span-12 md:col-span-6 lg:col-span-4',
-  },
-  {
-    icon: <BookOpen className="w-5 h-5 text-purple-500" />,
-    badge: 'LMS Engine',
-    title: 'Homework & Report Cards',
-    desc: 'Continuous grading, assignment turn-in, and 1-click batch generation of official report cards.',
-    colSpan: 'col-span-12 md:col-span-6 lg:col-span-4',
-  },
-  {
-    icon: <Lock className="w-5 h-5 text-rose-500" />,
-    badge: 'Sovereignty',
-    title: 'Cryptographic Isolation',
-    desc: 'Strict query-level tenant scoping, Bcrypt 12, and full FERPA/COPPA compliance.',
-    colSpan: 'col-span-12 md:col-span-6 lg:col-span-4',
-  },
+const INITIAL_ROSTER: RosterStudent[] = [
+  { id: '1', name: 'Aarav Patel', roll: '01', status: 'present' },
+  { id: '2', name: 'Diya Sharma', roll: '02', status: 'present' },
+  { id: '3', name: 'Kabir Mehta', roll: '03', status: 'absent' },
+  { id: '4', name: 'Ananya Roy', roll: '04', status: 'present' },
 ];
-
-/* ─────────────────────────────────────────────────────────────
-   UPCOMING INNOVATIONS (Clean, High-Tech Pills)
-   ───────────────────────────────────────────────────────────── */
-
-const UPCOMING_INNOVATIONS = [
-  {
-    icon: <Smartphone className="w-6 h-6 text-primary-500" />,
-    phase: 'Phase 3 • Cross-Platform',
-    title: 'Native Mobile App & Chat',
-    desc: 'Teacher-parent 1-on-1 messaging, digital circulars with read-receipts, and push alerts.',
-    tag: 'React Native / FCM',
-  },
-  {
-    icon: <CreditCard className="w-6 h-6 text-emerald-500" />,
-    phase: 'Phase 2 • Web & Mobile',
-    title: '1-Click UPI Fee Payments',
-    desc: 'Native UPI intent (GPay, PhonePe, Paytm) with automated ledgers and instant tax receipts.',
-    tag: 'Razorpay / Stripe',
-  },
-  {
-    icon: <BrainCircuit className="w-6 h-6 text-accent-500" />,
-    phase: 'Phase 2 • AI Workspace',
-    title: 'Perplexity AI Research Hub',
-    desc: 'Academic Q&A workspace with persistent threads, verified citations, and Socratic student tutor.',
-    tag: 'RAG Pipeline / Citations',
-  },
-  {
-    icon: <Layers className="w-6 h-6 text-amber-500" />,
-    phase: 'Phase 2 • Social Good',
-    title: 'Shiksha Sathi (NCERT/CBSE)',
-    desc: 'Curated question banks for Classes 1–12 and 1-click AI homework generation at zero cost.',
-    tag: 'NEP 2020 Aligned',
-  },
-  {
-    icon: <Camera className="w-6 h-6 text-purple-500" />,
-    phase: 'Phase 3 • Computer Vision',
-    title: 'VisionFlow AI Face Attendance',
-    desc: 'Teacher snaps a single classroom photo on mobile; AI matches and records 40+ students in 5s.',
-    tag: 'RetinaFace / ArcFace',
-  },
-];
-
-/* ─────────────────────────────────────────────────────────────
-   FAQ DATA (Crisp)
-   ───────────────────────────────────────────────────────────── */
 
 const FAQS = [
   {
@@ -234,54 +61,45 @@ const FAQS = [
   },
 ];
 
-/* ─────────────────────────────────────────────────────────────
-   MAIN COMPONENT (100% DISPLAY WIDTH • PUNCHY & VISUAL)
-   ───────────────────────────────────────────────────────────── */
-
 export default function LandingPage() {
-  const [selectedRole, setSelectedRole] = useState<RoleKey>('admin');
-  const [studentSlider, setStudentSlider] = useState<number>(1200);
-  const [activeFaq, setActiveFaq] = useState<number | null>(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'admin' | 'teacher' | 'student' | 'parent'>('admin');
+  const [roster, setRoster] = useState<RosterStudent[]>(INITIAL_ROSTER);
+  const [studentCount, setStudentCount] = useState<number>(1200);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
-  const hoursSavedPerYear = Math.round(studentSlider * 0.24);
-  const sheetsPaperSaved = Math.round(studentSlider * 12);
+  const toggleStudentStatus = (id: string) => {
+    setRoster(prev =>
+      prev.map(s => {
+        if (s.id !== id) return s;
+        const nextStatus = s.status === 'present' ? 'absent' : s.status === 'absent' ? 'late' : 'present';
+        return { ...s, status: nextStatus };
+      }),
+    );
+  };
 
   return (
     <div className="w-full min-h-screen overflow-x-hidden bg-background text-foreground selection:bg-primary-500 selection:text-white">
       {/* ─── Ambient Glow Mesh ─── */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-32 left-1/2 h-[500px] w-full -translate-x-1/2 bg-gradient-to-b from-primary-500/15 via-secondary-500/10 to-transparent blur-[120px]" />
-        <div className="absolute top-[45%] right-0 h-[400px] w-[500px] bg-accent-500/10 blur-[140px]" />
-        <div className="absolute top-[75%] left-0 h-[400px] w-[500px] bg-primary-500/10 blur-[140px]" />
+        <div className="absolute -top-40 left-1/2 h-[450px] w-full -translate-x-1/2 bg-gradient-to-b from-primary-500/20 via-secondary-500/10 to-transparent blur-[140px]" />
+        <div className="absolute top-[50%] right-0 h-[350px] w-[450px] bg-accent-500/10 blur-[140px]" />
       </div>
 
-      {/* ─── 100% Full-Width Floating Header ─── */}
+      {/* ─── 100% Full-Width Clean Navbar ─── */}
       <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-surface/85 backdrop-blur-xl">
         <nav className="w-full flex h-16 items-center justify-between px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
           <Logo to="/" size="md" showText={true} textClassName="text-xl font-black tracking-tight" />
 
-          {/* Navigation Links */}
-          <div className="hidden items-center gap-1 md:flex">
-            <a href="#features" className="rounded-xl px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-muted hover:bg-elevated hover:text-foreground transition">
-              Features
-            </a>
-            <a href="#showcase" className="rounded-xl px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-muted hover:bg-elevated hover:text-foreground transition">
-              Portals
-            </a>
-            <a href="#innovations" className="rounded-xl px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-muted hover:bg-elevated hover:text-foreground transition">
-              Roadmap
-            </a>
-            <a href="#calculator" className="rounded-xl px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-muted hover:bg-elevated hover:text-foreground transition">
-              ROI
-            </a>
-            <a href="#faqs" className="rounded-xl px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-muted hover:bg-elevated hover:text-foreground transition">
-              FAQs
-            </a>
+          {/* Quick Anchor Links */}
+          <div className="hidden items-center gap-6 md:flex text-xs font-bold uppercase tracking-wider text-muted">
+            <a href="#showcase" className="hover:text-foreground transition">Platform</a>
+            <a href="#features" className="hover:text-foreground transition">Features</a>
+            <a href="#innovations" className="hover:text-foreground transition">Roadmap</a>
+            <a href="#calculator" className="hover:text-foreground transition">Impact</a>
           </div>
 
-          {/* Action Buttons */}
-          <div className="hidden items-center gap-3 md:flex">
+          {/* Actions */}
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link
               to="/login"
@@ -291,386 +109,488 @@ export default function LandingPage() {
             </Link>
             <Link
               to="/school/register"
-              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-primary-500/25 hover:shadow-primary-500/40 hover:-translate-y-0.5 transition"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-500 to-secondary-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-primary-500/25 hover:shadow-primary-500/40 hover:-translate-y-0.5 transition"
             >
-              Register School
-              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              Get Started
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggle />
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-surface text-foreground"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? '✕' : '☰'}
-            </button>
           </div>
         </nav>
-
-        {/* Mobile Dropdown */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="w-full border-b border-border bg-surface px-6 py-4 md:hidden"
-            >
-              <div className="flex flex-col gap-2.5 font-semibold text-sm">
-                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-muted hover:text-foreground">Features</a>
-                <a href="#showcase" onClick={() => setMobileMenuOpen(false)} className="text-muted hover:text-foreground">Role Portals</a>
-                <a href="#innovations" onClick={() => setMobileMenuOpen(false)} className="text-muted hover:text-foreground">Upcoming Roadmap</a>
-                <a href="#calculator" onClick={() => setMobileMenuOpen(false)} className="text-muted hover:text-foreground">ROI Calculator</a>
-                <a href="#faqs" onClick={() => setMobileMenuOpen(false)} className="text-muted hover:text-foreground">FAQs</a>
-                <div className="my-1.5 h-px bg-border" />
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-foreground">Sign In</Link>
-                <Link to="/school/register" onClick={() => setMobileMenuOpen(false)} className="rounded-xl bg-primary-500 py-2.5 text-center font-bold text-white">
-                  Register Your School
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </header>
 
-      {/* ─── 100% Full-Width Hero Section ─── */}
-      <section className="w-full pt-10 pb-16 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
-        <div className="w-full flex flex-col items-center text-center">
-          {/* Top Pill Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 rounded-full border border-primary-500/20 bg-primary-500/10 px-3.5 py-1 text-xs font-bold text-primary-600 dark:text-primary-400"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AcadFlows 2.0 • Modern School Operating System</span>
-          </motion.div>
-
-          {/* High-Impact Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mt-5 text-4xl sm:text-6xl lg:text-7xl 2xl:text-8xl font-black tracking-tight"
-          >
-            Run Your School in{' '}
-            <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 bg-clip-text text-transparent">
-              Pure Digital Flow.
-            </span>
-          </motion.h1>
-
-          {/* Short 1-Line Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-4 max-w-2xl text-base sm:text-lg text-muted font-medium"
-          >
-            Unified multi-tenant software for academic calendars, 10-second attendance, conflict-free schedules, fee billing, and LMS gradebooks.
-          </motion.p>
-
-          {/* Quick CTA Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-6 flex flex-wrap items-center justify-center gap-3"
-          >
-            <Link
-              to="/school/register"
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary-500 to-secondary-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 hover:-translate-y-0.5 transition"
-            >
-              Get Started Free
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-6 py-3.5 text-sm font-bold text-foreground hover:bg-elevated transition"
-            >
-              Live Demo Sign In
-            </Link>
-          </motion.div>
-
-          {/* 4 Feature Ticker Pills */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs font-semibold text-muted">
-            <span className="rounded-full bg-elevated px-3 py-1.5 border border-border/80">⚡ 10-Sec Roll Call</span>
-            <span className="rounded-full bg-elevated px-3 py-1.5 border border-border/80">🛡️ Zero Cross-Tenant Leaks</span>
-            <span className="rounded-full bg-elevated px-3 py-1.5 border border-border/80">📄 100% Paperless Ops</span>
-            <span className="rounded-full bg-elevated px-3 py-1.5 border border-border/80">🚀 99.98% Cloud SLA</span>
-          </div>
+      {/* ─── 100% Full-Width Minimal Hero ─── */}
+      <section className="w-full pt-12 pb-10 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24 text-center">
+        {/* Top Badge */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary-500/20 bg-primary-500/10 px-3.5 py-1 text-xs font-bold text-primary-600 dark:text-primary-400">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Next-Gen School Operating System</span>
         </div>
 
-        {/* ─── 100% Full-Width Interactive Workspace Preview ─── */}
-        <div id="showcase" className="mt-12 w-full">
-          <div className="w-full rounded-3xl border border-border/80 bg-surface/90 p-4 sm:p-6 lg:p-8 shadow-2xl backdrop-blur-2xl">
-            {/* Role Switcher Tabs */}
-            <div className="flex flex-wrap items-center justify-center gap-2 border-b border-border pb-5">
-              {(Object.keys(ROLE_PREVIEWS) as RoleKey[]).map(roleKey => {
-                const item = ROLE_PREVIEWS[roleKey];
-                const isActive = selectedRole === roleKey;
-                return (
-                  <button
-                    key={roleKey}
-                    onClick={() => setSelectedRole(roleKey)}
-                    className={`relative rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-all ${
-                      isActive
-                        ? 'bg-primary-500 text-white shadow-md shadow-primary-500/25'
-                        : 'text-muted hover:bg-elevated hover:text-foreground'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                );
-              })}
+        {/* Minimal Hero Headline */}
+        <h1 className="mt-5 text-4xl sm:text-6xl lg:text-7xl 2xl:text-8xl font-black tracking-tight">
+          Run Your Entire School in{' '}
+          <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 bg-clip-text text-transparent">
+            Pure Flow.
+          </span>
+        </h1>
+
+        {/* Ultra-Short 1-Line Subtitle */}
+        <p className="mt-3 text-base sm:text-lg text-muted font-medium max-w-xl mx-auto">
+          Academics, 10s Attendance, Timetables, UPI Fees, and AI. Zero paper, zero chaos.
+        </p>
+
+        {/* CTAs */}
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            to="/school/register"
+            className="rounded-xl bg-primary-500 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-primary-500/25 hover:bg-primary-600 hover:-translate-y-0.5 transition"
+          >
+            Register School Free
+          </Link>
+          <Link
+            to="/login"
+            className="rounded-xl border border-border bg-surface px-6 py-3 text-xs sm:text-sm font-bold text-foreground hover:bg-elevated transition"
+          >
+            Explore Live Demo
+          </Link>
+        </div>
+
+        {/* Live Feature Ticker */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[11px] font-bold text-muted">
+          <span className="rounded-full bg-elevated px-3 py-1 border border-border">⚡ 10s Roll-Call</span>
+          <span className="rounded-full bg-elevated px-3 py-1 border border-border">📅 Zero Conflicts</span>
+          <span className="rounded-full bg-elevated px-3 py-1 border border-border">💳 1-Click UPI</span>
+          <span className="rounded-full bg-elevated px-3 py-1 border border-border">🛡️ Multi-Tenant Isolated</span>
+        </div>
+      </section>
+
+      {/* ─── 100% Full-Width Interactive Stage ─── */}
+      <section id="showcase" className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24 pb-16">
+        <div className="w-full rounded-3xl border border-border/80 bg-surface/90 p-4 sm:p-6 shadow-2xl backdrop-blur-2xl">
+          {/* Tabs */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-rose-500/80" />
+              <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+              <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+              <span className="ml-2 text-xs font-mono text-muted hidden sm:inline">acadflows.app/campus-hub</span>
             </div>
 
-            {/* Dynamic Screen Viewport */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={selectedRole}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-                className="mt-5 w-full rounded-2xl border border-border bg-background p-5 sm:p-8"
-              >
-                {/* Screen Header Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/60">
+            <div className="flex items-center gap-1.5 bg-background p-1 rounded-xl border border-border">
+              {(['admin', 'teacher', 'student', 'parent'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold capitalize transition ${
+                    activeTab === tab
+                      ? 'bg-primary-500 text-white shadow-sm'
+                      : 'text-muted hover:text-foreground'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Screen Content */}
+          <div className="mt-6 w-full rounded-2xl border border-border bg-background p-5 sm:p-8">
+            {activeTab === 'admin' && (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary-500">
-                      <Activity className="w-3.5 h-3.5" />
-                      {ROLE_PREVIEWS[selectedRole].badge}
-                    </div>
-                    <h3 className="mt-1 text-2xl font-black">{ROLE_PREVIEWS[selectedRole].title}</h3>
-                    <p className="mt-1 text-xs sm:text-sm text-muted">{ROLE_PREVIEWS[selectedRole].tagline}</p>
+                    <h3 className="text-xl sm:text-2xl font-black">Springfield Academy Dashboard</h3>
+                    <p className="text-xs text-muted">Academic Term 2026–2027 • Active Session</p>
                   </div>
-                  <button className="self-start sm:self-auto rounded-xl bg-primary-500 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-primary-500/25 hover:bg-primary-600 transition">
-                    {ROLE_PREVIEWS[selectedRole].actionBtn}
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1 text-xs font-bold flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Campus Online
+                    </span>
+                  </div>
+                </div>
+
+                {/* Metric Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Students</p>
+                    <p className="text-2xl sm:text-3xl font-black text-foreground mt-1">1,420</p>
+                    <p className="text-[11px] text-emerald-500 font-semibold mt-1">96.4% Present Today</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Faculty</p>
+                    <p className="text-2xl sm:text-3xl font-black text-foreground mt-1">86</p>
+                    <p className="text-[11px] text-primary-500 font-semibold mt-1">0 Schedule Conflicts</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Fee Collections</p>
+                    <p className="text-2xl sm:text-3xl font-black text-foreground mt-1">₹42.8 L</p>
+                    <p className="text-[11px] text-accent-500 font-semibold mt-1">84% On-Time (UPI)</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Active Classes</p>
+                    <p className="text-2xl sm:text-3xl font-black text-foreground mt-1">36 Sections</p>
+                    <p className="text-[11px] text-muted font-semibold mt-1">Grades 1 through 12</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'teacher' && (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black">Class 9-B Roll-Call Desk</h3>
+                    <p className="text-xs text-muted">Tap any student to change status instantly</p>
+                  </div>
+                  <button className="rounded-xl bg-primary-500 px-4 py-2 text-xs font-bold text-white shadow-sm">
+                    Submit 10s Roll-Call
                   </button>
                 </div>
 
-                {/* Live Metric Cards Grid */}
-                <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {ROLE_PREVIEWS[selectedRole].metrics.map((m, i) => (
-                    <div key={i} className="rounded-2xl border border-border/80 bg-surface p-4">
-                      <p className="text-xs font-medium text-muted">{m.label}</p>
-                      <p className={`mt-1.5 text-2xl sm:text-3xl font-black ${m.color}`}>{m.value}</p>
+                {/* Interactive Roster */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {roster.map(st => (
+                    <div
+                      key={st.id}
+                      onClick={() => toggleStudentStatus(st.id)}
+                      className="cursor-pointer rounded-2xl border border-border bg-surface p-4 flex items-center justify-between hover:border-primary-500 transition select-none"
+                    >
+                      <div>
+                        <p className="text-xs font-bold text-muted">Roll #{st.roll}</p>
+                        <p className="text-sm font-black text-foreground mt-0.5">{st.name}</p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${
+                          st.status === 'present'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : st.status === 'absent'
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                        }`}
+                      >
+                        {st.status}
+                      </span>
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
 
-                {/* Visual Chips Row */}
-                <div className="mt-6 flex flex-wrap gap-2 pt-4 border-t border-border/60">
-                  {ROLE_PREVIEWS[selectedRole].chips.map((chip, cIdx) => (
-                    <span
-                      key={cIdx}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-elevated px-3 py-1.5 text-xs font-semibold text-muted"
-                    >
-                      <Check className="w-3.5 h-3.5 text-primary-500" />
-                      {chip}
-                    </span>
-                  ))}
+            {activeTab === 'student' && (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black">Aarav Patel • Student Portal</h3>
+                    <p className="text-xs text-muted">Grade 9, Section B • Roll #01</p>
+                  </div>
+                  <span className="rounded-full bg-accent-500/10 text-accent-600 dark:text-accent-400 px-3 py-1 text-xs font-bold">
+                    Term 1 GPA: 3.85 / 4.0
+                  </span>
                 </div>
-              </motion.div>
-            </AnimatePresence>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Upcoming Period</p>
+                    <p className="text-lg font-black text-foreground mt-1">Physics Lab</p>
+                    <p className="text-xs text-primary-500 mt-1">Room 204 • 10:15 AM</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Homework Due</p>
+                    <p className="text-lg font-black text-foreground mt-1">Cell Biology Report</p>
+                    <p className="text-xs text-amber-500 mt-1">Due Tomorrow 5:00 PM</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Attendance Score</p>
+                    <p className="text-lg font-black text-foreground mt-1">98.2%</p>
+                    <p className="text-xs text-emerald-500 mt-1">Honors Standing</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'parent' && (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black">Parent Desk • Aarav Patel</h3>
+                    <p className="text-xs text-muted">Real-Time Daily Transparency</p>
+                  </div>
+                  <button className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-white shadow-sm flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Pay Term 2 Fee (UPI)
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Campus Check-In</p>
+                    <p className="text-lg font-black text-emerald-500 mt-1">08:14 AM Today</p>
+                    <p className="text-xs text-muted mt-1">Roll-Call Verified</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Term 2 Invoice</p>
+                    <p className="text-lg font-black text-amber-500 mt-1">₹35,000</p>
+                    <p className="text-xs text-muted mt-1">Due in 10 Days</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface p-4">
+                    <p className="text-xs text-muted font-bold">Latest Test Score</p>
+                    <p className="text-lg font-black text-foreground mt-1">94 / 100</p>
+                    <p className="text-xs text-accent-500 mt-1">Math Mid-Term (Grade A+)</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* ─── 100% Full-Width Feature Bento Grid ─── */}
-      <section id="features" className="w-full py-16 border-t border-border/60 bg-surface/30 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
-        <div className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-primary-500">Core Engine</span>
-            <h2 className="mt-1.5 text-3xl sm:text-4xl font-black">All Modules in One Place</h2>
-          </div>
-          <p className="text-sm text-muted max-w-md">
-            Engineered to replace fragmented software with one unified school operating database.
-          </p>
+      {/* ─── 100% Full-Width Visual Bento Grid (Widget Style, Zero Fluff) ─── */}
+      <section id="features" className="w-full py-12 border-t border-border/60 bg-surface/30 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full mb-8">
+          <h2 className="text-2xl sm:text-3xl font-black">Core School Engine</h2>
+          <p className="text-xs sm:text-sm text-muted mt-1">Everything an institution needs, zero unnecessary complexity.</p>
         </div>
 
-        <div className="w-full grid grid-cols-12 gap-4 sm:gap-6">
-          {BENTO_FEATURES.map((feat, idx) => (
-            <div
-              key={idx}
-              className={`rounded-2xl border border-border/80 bg-surface p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-200 ${feat.colSpan}`}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2.5 rounded-xl bg-elevated">{feat.icon}</div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-muted">{feat.badge}</span>
-              </div>
-              <h3 className="text-lg font-black text-foreground">{feat.title}</h3>
-              <p className="mt-2 text-xs sm:text-sm text-muted leading-relaxed">{feat.desc}</p>
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Card 1 */}
+          <div className="rounded-2xl border border-border bg-surface p-5 hover:border-primary-500/50 transition">
+            <div className="flex items-center justify-between mb-3">
+              <span className="p-2 rounded-xl bg-elevated text-primary-500"><Calendar className="w-5 h-5" /></span>
+              <span className="text-[10px] font-bold uppercase text-muted">Academics</span>
             </div>
-          ))}
+            <h4 className="text-base font-black">Calendar & Terms</h4>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Grades 1–12</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Sections A–D</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Elective Subjects</span>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className="rounded-2xl border border-border bg-surface p-5 hover:border-amber-500/50 transition">
+            <div className="flex items-center justify-between mb-3">
+              <span className="p-2 rounded-xl bg-elevated text-amber-500"><Clock className="w-5 h-5" /></span>
+              <span className="text-[10px] font-bold uppercase text-muted">Timetable</span>
+            </div>
+            <h4 className="text-base font-black">Conflict-Free Scheduler</h4>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-[11px] font-semibold">0 Collisions</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Room Sync</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Teacher Slots</span>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="rounded-2xl border border-border bg-surface p-5 hover:border-emerald-500/50 transition">
+            <div className="flex items-center justify-between mb-3">
+              <span className="p-2 rounded-xl bg-elevated text-emerald-500"><CheckCircle2 className="w-5 h-5" /></span>
+              <span className="text-[10px] font-bold uppercase text-muted">Attendance</span>
+            </div>
+            <h4 className="text-base font-black">10-Second Roll-Call</h4>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">One-Tap Present</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Auto Parent SMS</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Monthly CSVs</span>
+            </div>
+          </div>
+
+          {/* Card 4 */}
+          <div className="rounded-2xl border border-border bg-surface p-5 hover:border-accent-500/50 transition">
+            <div className="flex items-center justify-between mb-3">
+              <span className="p-2 rounded-xl bg-elevated text-accent-500"><CreditCard className="w-5 h-5" /></span>
+              <span className="text-[10px] font-bold uppercase text-muted">Billing</span>
+            </div>
+            <h4 className="text-base font-black">Fee Invoices & Receipts</h4>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">UPI QR Intent</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Installments</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">PDF Receipts</span>
+            </div>
+          </div>
+
+          {/* Card 5 */}
+          <div className="rounded-2xl border border-border bg-surface p-5 hover:border-purple-500/50 transition">
+            <div className="flex items-center justify-between mb-3">
+              <span className="p-2 rounded-xl bg-elevated text-purple-500"><GraduationCap className="w-5 h-5" /></span>
+              <span className="text-[10px] font-bold uppercase text-muted">LMS</span>
+            </div>
+            <h4 className="text-base font-black">Homework & Gradebook</h4>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Turn-in Desk</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Weighted GPAs</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Batch Report Cards</span>
+            </div>
+          </div>
+
+          {/* Card 6 */}
+          <div className="rounded-2xl border border-border bg-surface p-5 hover:border-rose-500/50 transition">
+            <div className="flex items-center justify-between mb-3">
+              <span className="p-2 rounded-xl bg-elevated text-rose-500"><ShieldCheck className="w-5 h-5" /></span>
+              <span className="text-[10px] font-bold uppercase text-muted">Security</span>
+            </div>
+            <h4 className="text-base font-black">Multi-Tenant Vault</h4>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Zero Cross-Leaks</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">FERPA / COPPA</span>
+              <span className="rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-muted">Bcrypt 12</span>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ─── 100% Full-Width Upcoming Innovations ─── */}
-      <section id="innovations" className="w-full py-16 border-t border-border/60 bg-background px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
-        <div className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+      <section id="innovations" className="w-full py-12 border-t border-border/60 bg-background px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full flex items-center justify-between mb-8">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-secondary-500">Active Roadmap</span>
-            <h2 className="mt-1.5 text-3xl sm:text-4xl font-black">Upcoming Breakthrough Features</h2>
+            <h2 className="text-2xl sm:text-3xl font-black">Upcoming Breakthroughs</h2>
+            <p className="text-xs sm:text-sm text-muted mt-1">Our active engineering pipeline for mobile and AI.</p>
           </div>
-          <Link to="/school/register" className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-600">
-            <span>Early Access Program</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <span className="text-xs font-bold text-secondary-500">Phases 2 & 3</span>
         </div>
 
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {UPCOMING_INNOVATIONS.map((item, idx) => (
-            <div
-              key={idx}
-              className="rounded-2xl border border-border/80 bg-surface p-5 flex flex-col justify-between hover:border-primary-500/60 hover:shadow-lg transition"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="p-2.5 rounded-xl bg-elevated">{item.icon}</div>
-                  <span className="rounded-md bg-elevated px-2 py-0.5 text-[10px] font-bold text-muted">{item.tag}</span>
-                </div>
-                <h4 className="text-base font-black text-foreground">{item.title}</h4>
-                <p className="mt-2 text-xs text-muted leading-relaxed">{item.desc}</p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-border/60 text-[11px] font-semibold text-primary-600 dark:text-primary-400">
-                {item.phase}
-              </div>
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {/* Innovation 1 */}
+          <div className="rounded-2xl border border-border bg-surface p-4 flex flex-col justify-between">
+            <div>
+              <Smartphone className="w-6 h-6 text-primary-500 mb-2" />
+              <h5 className="text-sm font-black">Mobile App Hub</h5>
+              <p className="text-xs text-muted mt-1">1-on-1 parent chat, push notices, circulars.</p>
             </div>
-          ))}
+            <span className="mt-4 text-[10px] font-bold uppercase text-primary-500">React Native</span>
+          </div>
+
+          {/* Innovation 2 */}
+          <div className="rounded-2xl border border-border bg-surface p-4 flex flex-col justify-between">
+            <div>
+              <CreditCard className="w-6 h-6 text-emerald-500 mb-2" />
+              <h5 className="text-sm font-black">1-Click UPI Fees</h5>
+              <p className="text-xs text-muted mt-1">GPay, PhonePe native intent & instant receipts.</p>
+            </div>
+            <span className="mt-4 text-[10px] font-bold uppercase text-emerald-500">Razorpay / Stripe</span>
+          </div>
+
+          {/* Innovation 3 */}
+          <div className="rounded-2xl border border-border bg-surface p-4 flex flex-col justify-between">
+            <div>
+              <BrainCircuit className="w-6 h-6 text-accent-500 mb-2" />
+              <h5 className="text-sm font-black">Perplexity AI Hub</h5>
+              <p className="text-xs text-muted mt-1">Q&A research with verified source citations.</p>
+            </div>
+            <span className="mt-4 text-[10px] font-bold uppercase text-accent-500">RAG Workspace</span>
+          </div>
+
+          {/* Innovation 4 */}
+          <div className="rounded-2xl border border-border bg-surface p-4 flex flex-col justify-between">
+            <div>
+              <Layers className="w-6 h-6 text-amber-500 mb-2" />
+              <h5 className="text-sm font-black">Shiksha Sathi</h5>
+              <p className="text-xs text-muted mt-1">NCERT/CBSE question banks & AI homework.</p>
+            </div>
+            <span className="mt-4 text-[10px] font-bold uppercase text-amber-500">Free Curriculum Suite</span>
+          </div>
+
+          {/* Innovation 5 */}
+          <div className="rounded-2xl border border-border bg-surface p-4 flex flex-col justify-between">
+            <div>
+              <Camera className="w-6 h-6 text-purple-500 mb-2" />
+              <h5 className="text-sm font-black">VisionFlow Face AI</h5>
+              <p className="text-xs text-muted mt-1">Classroom photo ➔ 5-sec roll-call.</p>
+            </div>
+            <span className="mt-4 text-[10px] font-bold uppercase text-purple-500">Computer Vision</span>
+          </div>
         </div>
       </section>
 
-      {/* ─── 100% Full-Width Interactive Campus ROI Calculator ─── */}
-      <section id="calculator" className="w-full py-16 border-t border-border/60 bg-surface/40 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
-        <div className="w-full rounded-3xl border border-border/80 bg-background p-6 sm:p-10 shadow-xl">
+      {/* ─── 100% Full-Width Dynamic ROI Impact ─── */}
+      <section id="calculator" className="w-full py-12 border-t border-border/60 bg-surface/30 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full rounded-3xl border border-border bg-background p-6 sm:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Slider */}
             <div className="lg:col-span-5">
-              <span className="text-xs font-bold uppercase tracking-widest text-primary-500">Live ROI Impact</span>
-              <h3 className="mt-2 text-2xl sm:text-3xl font-black">Interactive Campus Calculator</h3>
-              <p className="mt-2 text-xs sm:text-sm text-muted">
-                Drag the student count to see annual administrative hours recovered and paper eliminated.
-              </p>
+              <h3 className="text-xl sm:text-2xl font-black">Campus Efficiency Calculator</h3>
+              <p className="text-xs text-muted mt-1">See paper and hours eliminated at your school size.</p>
 
-              <div className="mt-6">
-                <div className="flex items-center justify-between text-sm font-bold">
-                  <span>Enrolled Students:</span>
-                  <span className="text-2xl font-black text-primary-500">{studentSlider.toLocaleString()}</span>
+              <div className="mt-5">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span>Enrolled Students</span>
+                  <span className="text-xl font-black text-primary-500">{studentCount.toLocaleString()}</span>
                 </div>
                 <input
                   type="range"
                   min="100"
                   max="5000"
                   step="50"
-                  value={studentSlider}
-                  onChange={e => setStudentSlider(Number(e.target.value))}
-                  className="mt-3 w-full accent-primary-500 h-2 bg-elevated rounded-lg cursor-pointer"
+                  value={studentCount}
+                  onChange={e => setStudentCount(Number(e.target.value))}
+                  className="mt-2 w-full accent-primary-500 h-2 bg-elevated rounded-lg cursor-pointer"
                 />
-                <div className="mt-1.5 flex justify-between text-[11px] font-medium text-muted">
-                  <span>100 Students</span>
-                  <span>2,500</span>
-                  <span>5,000+</span>
-                </div>
               </div>
             </div>
 
-            {/* Results */}
-            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-border bg-surface p-5">
-                <Clock className="w-6 h-6 text-primary-500 mb-2" />
-                <p className="text-[11px] font-bold uppercase text-muted">Hours Saved</p>
-                <p className="mt-1 text-2xl sm:text-3xl font-black text-foreground">~{hoursSavedPerYear}h</p>
-                <p className="mt-1 text-[11px] text-muted">Manual registers eliminated</p>
+            <div className="lg:col-span-7 grid grid-cols-3 gap-3">
+              <div className="rounded-2xl border border-border bg-surface p-4 text-center">
+                <p className="text-[11px] font-bold text-muted uppercase">Hours Saved</p>
+                <p className="text-2xl sm:text-3xl font-black text-foreground mt-1">~{Math.round(studentCount * 0.24)}h</p>
               </div>
-
-              <div className="rounded-2xl border border-border bg-surface p-5">
-                <FileText className="w-6 h-6 text-emerald-500 mb-2" />
-                <p className="text-[11px] font-bold uppercase text-muted">Paper Sheets</p>
-                <p className="mt-1 text-2xl sm:text-3xl font-black text-foreground">~{sheetsPaperSaved.toLocaleString()}</p>
-                <p className="mt-1 text-[11px] text-muted">Printed notices replaced</p>
+              <div className="rounded-2xl border border-border bg-surface p-4 text-center">
+                <p className="text-[11px] font-bold text-muted uppercase">Paper Saved</p>
+                <p className="text-2xl sm:text-3xl font-black text-foreground mt-1">~{(studentCount * 12).toLocaleString()}</p>
               </div>
-
-              <div className="rounded-2xl border border-border bg-surface p-5">
-                <Zap className="w-6 h-6 text-amber-500 mb-2" />
-                <p className="text-[11px] font-bold uppercase text-muted">Fee Settlement</p>
-                <p className="mt-1 text-2xl sm:text-3xl font-black text-foreground">3.4x Faster</p>
-                <p className="mt-1 text-[11px] text-muted">Via instant UPI reminders</p>
+              <div className="rounded-2xl border border-border bg-surface p-4 text-center">
+                <p className="text-[11px] font-bold text-muted uppercase">Fee Pace</p>
+                <p className="text-2xl sm:text-3xl font-black text-emerald-500 mt-1">3.4x</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── 100% Full-Width FAQ Section ─── */}
-      <section id="faqs" className="w-full py-16 border-t border-border/60 bg-background px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
-        <div className="w-full mb-8">
-          <span className="text-xs font-bold uppercase tracking-widest text-primary-500">Questions & Answers</span>
-          <h2 className="mt-1 text-2xl sm:text-3xl font-black">Frequently Asked Questions</h2>
-        </div>
-
-        <div className="w-full space-y-3">
-          {FAQS.map((faq, idx) => {
-            const isOpen = activeFaq === idx;
-            return (
-              <div key={idx} className="rounded-2xl border border-border/80 bg-surface overflow-hidden">
-                <button
-                  onClick={() => setActiveFaq(isOpen ? null : idx)}
-                  className="flex w-full items-center justify-between p-5 text-left font-bold text-sm sm:text-base hover:bg-elevated/40 transition"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-muted transition-transform ${isOpen ? 'rotate-180 text-primary-500' : ''}`} />
-                </button>
-                {isOpen && (
-                  <div className="border-t border-border/60 px-5 pb-5 pt-3 text-xs sm:text-sm text-muted leading-relaxed">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      {/* ─── 100% Full-Width Ultra-Compact FAQ ─── */}
+      <section className="w-full py-12 border-t border-border/60 bg-background px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
+        <h3 className="text-xl sm:text-2xl font-black mb-4">Quick Answers</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {FAQS.map((faq, idx) => (
+            <div key={idx} className="rounded-2xl border border-border bg-surface p-4">
+              <p className="text-xs font-black text-foreground">{faq.q}</p>
+              <p className="text-xs text-muted mt-1 leading-relaxed">{faq.a}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ─── 100% Full-Width Conversion Banner ─── */}
-      <section className="w-full py-16 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
-        <div className="w-full rounded-3xl bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-600 p-8 sm:p-14 text-center text-white shadow-2xl">
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight">Ready to Run Your School in Flow?</h2>
-          <p className="mt-3 text-sm sm:text-base text-white/90 max-w-xl mx-auto">
-            Get started with zero installation. Onboard your campus today.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+      {/* ─── 100% Full-Width Conversion CTA ─── */}
+      <section className="w-full py-12 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full rounded-3xl bg-gradient-to-r from-primary-600 to-secondary-600 p-8 sm:p-12 text-center text-white shadow-xl">
+          <h2 className="text-3xl sm:text-4xl font-black">Ready to Run Your School in Flow?</h2>
+          <p className="mt-2 text-xs sm:text-sm text-white/90">Zero setup fee. Onboard your campus in minutes.</p>
+          <div className="mt-5 flex items-center justify-center gap-3">
             <Link
               to="/school/register"
-              className="rounded-xl bg-white px-7 py-3 text-xs sm:text-sm font-bold text-primary-600 shadow-lg hover:bg-neutral-100 transition"
+              className="rounded-xl bg-white px-6 py-2.5 text-xs sm:text-sm font-bold text-primary-600 hover:bg-neutral-100 transition shadow-md"
             >
-              Register Your School Free
+              Register School Free
             </Link>
             <Link
               to="/login"
-              className="rounded-xl border border-white/40 bg-white/10 px-6 py-3 text-xs sm:text-sm font-bold text-white hover:bg-white/20 transition"
+              className="rounded-xl border border-white/40 bg-white/10 px-5 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-white/20 transition"
             >
-              Existing Portal Login
+              Sign In
             </Link>
           </div>
         </div>
       </section>
 
       {/* ─── 100% Full-Width Footer ─── */}
-      <footer className="w-full border-t border-border/80 bg-surface py-8 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
-        <div className="w-full flex flex-col sm:flex-row items-center justify-between text-xs text-muted gap-4">
-          <div className="flex items-center gap-3">
+      <footer className="w-full border-t border-border/80 bg-surface py-6 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between text-xs text-muted gap-3">
+          <div className="flex items-center gap-2">
             <Logo to="/" size="sm" showText={true} textClassName="text-sm font-bold" />
             <span className="text-muted/60">|</span>
             <span>© {new Date().getFullYear()} AcadFlows Inc.</span>
           </div>
-          <div className="flex items-center gap-4 text-xs font-medium">
-            <Link to="/login" className="hover:text-foreground">Portal Login</Link>
-            <Link to="/school/register" className="hover:text-foreground">Onboarding</Link>
+          <div className="flex items-center gap-4 text-xs">
+            <Link to="/login" className="hover:text-foreground">Login</Link>
+            <Link to="/school/register" className="hover:text-foreground">Register</Link>
             <a href="https://github.com/anurag2417/AcadFlows" target="_blank" rel="noreferrer" className="hover:text-foreground">GitHub</a>
           </div>
         </div>
