@@ -22,6 +22,7 @@ import teacherRoutes from './modules/teachers/routes';
 import assignmentRoutes from './modules/assignments/routes';
 import timetableRoutes from './modules/timetable/routes';
 import attendanceRoutes from './modules/attendance/routes';
+import platformRoutes from './modules/platform/routes';
 
 const app: Express = express();
 
@@ -91,6 +92,9 @@ app.use('/api/v1/tenants', tenantRoutes);
 // Students & Users have public routes — modules handle their own auth
 app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/users', userRoutes);
+
+// Platform Admin module (cross-tenant, handles own auth + platform admin verification)
+app.use('/api/v1/platform', platformRoutes);
 
 /* ─────────────────────────────────────────────────────────────
    Fully-protected modules

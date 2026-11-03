@@ -80,7 +80,7 @@ export default function PlatformAdminDashboard({ user }: PlatformAdminDashboardP
   const fetchPlatformData = async () => {
     try {
       setError('');
-      const [statsRes, schoolsRes, usersRes, activityRes] = await Promise.all([
+      const [statsRes, schoolsRes, usersRes, activityRes] = await Promise.allSettled([
         api.get('/platform/stats'),
         api.get('/platform/schools', {
           params: { status: statusFilter, search: searchQuery || undefined, limit: 50 },
@@ -91,10 +91,15 @@ export default function PlatformAdminDashboard({ user }: PlatformAdminDashboardP
         api.get('/platform/recent-activity'),
       ]);
 
-      setStats(statsRes.data?.data || null);
-      setSchools(schoolsRes.data?.data?.items || []);
-      setAdmins(usersRes.data?.data?.items || []);
-      setActivities(activityRes.data?.data || []);
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data?.data || null);
+      if (schoolsRes.status === 'fulfilled') setSchools(schoolsRes.value.data?.data?.items || []);
+      if (usersRes.status === 'fulfilled') setAdmins(usersRes.value.data?.data?.items || []);
+      if (activityRes.status === 'fulfilled') setActivities(activityRes.value.data?.data || []);
+
+      if (schoolsRes.status === 'rejected') {
+        const err = schoolsRes.reason;
+        setError(err.response?.data?.error || err.message || 'Failed to load school records.');
+      }
     } catch (err: any) {
       console.error('Failed to fetch platform admin data:', err);
       setError(err.response?.data?.error || 'Failed to load platform data. Please check your connection.');
