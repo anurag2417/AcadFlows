@@ -11,6 +11,9 @@
     "build:web": "pnpm run --filter @acadflows/web build",
     "build:api": "pnpm run --filter @acadflows/api build",
     "build:shared": "pnpm run --filter @acadflows/shared build",
+    "prebuild": "pnpm run build:shared",
+    "pretype-check": "pnpm run build:shared",
+    "prelint": "pnpm run build:shared",
     "lint": "pnpm run --parallel lint",
     "type-check": "pnpm run --parallel type-check"
   },

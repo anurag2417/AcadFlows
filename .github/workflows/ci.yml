@@ -25,6 +25,9 @@ jobs:
         
     - name: Install dependencies
       run: pnpm install
+
+    - name: Build shared packages
+      run: pnpm run build:shared
       
     - name: Type check
       run: pnpm run type-check
