@@ -70,7 +70,6 @@ export class TimetableService {
 
     const [timetables, total] = await Promise.all([
       Timetable.find(query)
-        .populate('createdBy', 'firstName lastName')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -86,9 +85,25 @@ export class TimetableService {
         }),
       })),
     );
+    const [grades, sections] = await Promise.all([
+      Grade.find({
+        tenantId,
+        _id: { $in: items.map(item => item.gradeId) },
+      }).select('name').lean(),
+      Section.find({
+        tenantId,
+        _id: { $in: items.map(item => item.sectionId) },
+      }).select('name').lean(),
+    ]);
+    const gradeNames = new Map(grades.map(grade => [grade._id.toString(), grade.name]));
+    const sectionNames = new Map(sections.map(section => [section._id.toString(), section.name]));
 
     return {
-      items,
+      items: items.map(item => ({
+        ...item,
+        grade: item.gradeId ? { _id: item.gradeId, name: gradeNames.get(item.gradeId) || 'Unknown class' } : null,
+        section: item.sectionId ? { _id: item.sectionId, name: sectionNames.get(item.sectionId) || 'Unknown section' } : null,
+      })),
       total,
       page,
       limit,

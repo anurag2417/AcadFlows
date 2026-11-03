@@ -16,6 +16,8 @@ interface Timetable {
   startDate: string;
   endDate: string;
   entriesCount?: number;
+  grade?: { _id: string; name: string };
+  section?: { _id: string; name: string };
 }
 
 const typeVariant: Record<string, 'success' | 'danger' | 'accent' | 'info'> = {
@@ -29,6 +31,7 @@ export default function TimetablesPage() {
   const { user } = useAuth();
   const [timetables, setTimetables] = useState<Timetable[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [academicYears, setAcademicYears] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState('');
 
@@ -44,23 +47,31 @@ export default function TimetablesPage() {
   const fetchAcademicYears = async () => {
     try {
       const response = await api.get('/academic/academic-years');
-      setAcademicYears(response.data.data);
-      const current = response.data.data.find((y: any) => y.isCurrent);
+      const years = response.data.data || [];
+      setAcademicYears(years);
+      const current = years.find((y: any) => y.isCurrent && y.status === 'active')
+        || years.find((y: any) => y.status === 'active')
+        || years[0];
       if (current) setSelectedYear(current._id);
+      else setLoading(false);
     } catch (error) {
       console.error('Failed to fetch academic years:', error);
+      setError('Failed to load academic years');
+      setLoading(false);
     }
   };
 
   const fetchTimetables = async () => {
     setLoading(true);
+    setError('');
     try {
       const response = await api.get(
         `/timetable?academicYearId=${selectedYear}&limit=100`,
       );
-      setTimetables(response.data.data.items);
+      setTimetables(response.data.data?.items || []);
     } catch (error) {
       console.error('Failed to fetch timetables:', error);
+      setError('Failed to load timetables. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -126,6 +137,12 @@ export default function TimetablesPage() {
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-border border-t-primary-500" />
         </div>
+      ) : error ? (
+        <Card className="text-center py-16">
+          <p className="text-4xl mb-3">⚠️</p>
+          <p className="text-sm text-danger">{error}</p>
+          <Button variant="outline" className="mt-4" onClick={fetchTimetables}>Try again</Button>
+        </Card>
       ) : timetables.length === 0 ? (
         <Card className="text-center py-16">
           <p className="text-5xl mb-3">📅</p>
@@ -161,6 +178,9 @@ export default function TimetablesPage() {
                   {tt.description}
                 </p>
               )}
+              <p className="mb-3 text-sm font-medium text-foreground">
+                {tt.grade?.name || 'Class'} · Section {tt.section?.name || '—'}
+              </p>
 
               <div className="space-y-1.5 text-xs flex-1">
                 <div className="flex justify-between">
