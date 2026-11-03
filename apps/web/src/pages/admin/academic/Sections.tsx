@@ -244,6 +244,7 @@ export default function SectionsPage() {
           section={editing}
           grades={grades}
           teachers={teachers}
+          sections={sections}
           onClose={() => setShowModal(false)}
           onSuccess={() => {
             setShowModal(false);
@@ -259,12 +260,14 @@ function SectionModal({
   section,
   grades,
   teachers,
+  sections,
   onClose,
   onSuccess,
 }: {
   section: Section | null;
   grades: Grade[];
   teachers: Teacher[];
+  sections: Section[];
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -278,6 +281,14 @@ function SectionModal({
     classTeacherId: section?.classTeacherId || '',
     roomNumber: section?.roomNumber || '',
   });
+  const assignedTeacherIds = new Set(
+    sections
+      .filter(item => item._id !== section?._id && item.classTeacherId)
+      .map(item => item.classTeacherId),
+  );
+  const eligibleTeachers = teachers.filter(
+    teacher => !assignedTeacherIds.has(teacher._id) || teacher._id === section?.classTeacherId,
+  );
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -382,7 +393,7 @@ function SectionModal({
               onChange={e => setForm({ ...form, classTeacherId: e.target.value })}
             >
               <option value="">Unassigned</option>
-              {teachers.map(t => (
+              {eligibleTeachers.map(t => (
                 <option key={t._id} value={t._id}>
                   {t.firstName} {t.lastName} ({t.employeeId})
                 </option>

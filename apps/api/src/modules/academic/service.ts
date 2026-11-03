@@ -5,6 +5,7 @@ import { Section } from '../../models/Section';
 import { Subject } from '../../models/Subject';
 import { TeacherSubject } from '../../models/TeacherSubject';
 import { Schedule } from '../../models/Schedule';
+import { Teacher } from '../../models/Teacher';
 import { AppError } from '../../middleware/error-handler';
 
 // Academic Year Service
@@ -258,7 +259,7 @@ export class TeacherSubjectService {
       .populate('sectionId', 'name');
   }
 
-  static async getAll(tenantId: string, teacherId?: string, subjectId?: string) {
+  static async getAll(tenantId: string, teacherId?: string, subjectId?: string): Promise<any[]> {
     const filter: any = { tenantId };
     if (teacherId) {
       filter.teacherId = teacherId;
@@ -266,11 +267,32 @@ export class TeacherSubjectService {
     if (subjectId) {
       filter.subjectId = subjectId;
     }
-    return await TeacherSubject.find(filter)
-      .populate('teacherId', 'firstName lastName email')
-      .populate('subjectId', 'name code')
-      .populate('gradeId', 'name code')
-      .populate('sectionId', 'name code');
+    const assignments = await TeacherSubject.find(filter).lean();
+    const [teacherIds, subjectIds, gradeIds, sectionIds] = [
+      [...new Set(assignments.map(item => item.teacherId))],
+      [...new Set(assignments.map(item => item.subjectId))],
+      [...new Set(assignments.map(item => item.gradeId).filter(Boolean))],
+      [...new Set(assignments.map(item => item.sectionId).filter(Boolean))],
+    ];
+    const [teachers, subjects, grades, sections] = await Promise.all([
+      Teacher.find({ _id: { $in: teacherIds }, tenantId }).select('firstName lastName email employeeId').lean(),
+      Subject.find({ _id: { $in: subjectIds }, tenantId }).select('name code').lean(),
+      Grade.find({ _id: { $in: gradeIds }, tenantId }).select('name code').lean(),
+      Section.find({ _id: { $in: sectionIds }, tenantId }).select('name code').lean(),
+    ]);
+    const byId = (items: { _id: unknown }[]) =>
+      new Map(items.map(item => [String(item._id), item]));
+    const teacherMap = byId(teachers);
+    const subjectMap = byId(subjects);
+    const gradeMap = byId(grades);
+    const sectionMap = byId(sections);
+    return assignments.map(item => ({
+      ...item,
+      teacherId: teacherMap.get(String(item.teacherId)) || item.teacherId,
+      subjectId: subjectMap.get(String(item.subjectId)) || item.subjectId,
+      gradeId: item.gradeId ? gradeMap.get(String(item.gradeId)) || item.gradeId : undefined,
+      sectionId: item.sectionId ? sectionMap.get(String(item.sectionId)) || item.sectionId : undefined,
+    }));
   }
 
   static async getById(id: string, tenantId: string) {

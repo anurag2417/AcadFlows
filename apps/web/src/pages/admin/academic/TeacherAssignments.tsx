@@ -80,6 +80,16 @@ export default function TeacherAssignmentsPage() {
     }
   };
 
+  const teacherName = (id: string) => {
+    const teacher = teachers.find(item => item._id === id);
+    return teacher ? `${teacher.firstName} ${teacher.lastName}` : id;
+  };
+  const subjectDetails = (id: string) => subjects.find(item => item._id === id);
+  const sectionName = (id?: string) => {
+    if (!id) return 'All Sections';
+    return sections.find(item => item._id === id)?.name || id;
+  };
+
   return (
     <DashboardLayout>
       <PageHeader
@@ -136,7 +146,9 @@ export default function TeacherAssignmentsPage() {
                   <tr key={a._id} className="hover:bg-elevated/50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <p className="text-sm font-medium text-foreground">
-                        {a.teacherId?.firstName} {a.teacherId?.lastName}
+                        {a.teacherId?.firstName
+                          ? `${a.teacherId.firstName} ${a.teacherId.lastName}`
+                          : teacherName(a.teacherId)}
                       </p>
                       <p className="text-xs text-muted">
                         {a.teacherId?.employeeId || ''}
@@ -144,15 +156,15 @@ export default function TeacherAssignmentsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-foreground">
-                        {a.subjectId?.name}
+                        {a.subjectId?.name || subjectDetails(a.subjectId)?.name || a.subjectId}
                       </span>
                       <p className="text-xs font-mono text-muted">
-                        {a.subjectId?.code}
+                        {a.subjectId?.code || subjectDetails(a.subjectId)?.code}
                       </p>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-foreground">
-                        {a.sectionId?.name || '—'}
+                        {a.sectionId?.name || sectionName(a.sectionId)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -209,7 +221,7 @@ function AssignmentModal({
   const [error, setError] = useState('');
   const [form, setForm] = useState({
     teacherId: '',
-    subjectId: '',
+    subjectIds: [] as string[],
     gradeId: '',
     sectionId: '',
     academicYearId: '',
@@ -227,7 +239,19 @@ function AssignmentModal({
     setSaving(true);
     setError('');
     try {
-      await api.post('/academic/teacher-subjects', form);
+      if (form.subjectIds.length === 0) {
+        setError('Select at least one subject');
+        setSaving(false);
+        return;
+      }
+      await Promise.all(
+        form.subjectIds.map(subjectId =>
+          api.post('/academic/teacher-subjects', {
+            ...form,
+            subjectId,
+          }),
+        ),
+      );
       onSuccess();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to save');
@@ -281,19 +305,34 @@ function AssignmentModal({
             </Select>
           </div>
           <div>
-            <Label required>Subject</Label>
-            <Select
-              value={form.subjectId}
-              onChange={e => setForm({ ...form, subjectId: e.target.value })}
-              required
-            >
-              <option value="">Select Subject</option>
-              {subjects.map((s: any) => (
-                <option key={s._id} value={s._id}>
-                  {s.name} ({s.code})
-                </option>
-              ))}
-            </Select>
+            <Label required>Subjects</Label>
+            <div className="grid grid-cols-2 gap-2 mt-1.5">
+              {subjects.map((subject: any) => {
+                const selected = form.subjectIds.includes(subject._id);
+                return (
+                  <button
+                    key={subject._id}
+                    type="button"
+                    onClick={() =>
+                      setForm(previous => ({
+                        ...previous,
+                        subjectIds: selected
+                          ? previous.subjectIds.filter(id => id !== subject._id)
+                          : [...previous.subjectIds, subject._id],
+                      }))
+                    }
+                    className={cn(
+                      'rounded-lg border px-3 py-2 text-left text-sm',
+                      selected
+                        ? 'border-primary-500 bg-primary-500/10 text-primary-700'
+                        : 'border-border bg-surface hover:border-primary-300',
+                    )}
+                  >
+                    {subject.name} ({subject.code})
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div>
             <Label required>Class</Label>
