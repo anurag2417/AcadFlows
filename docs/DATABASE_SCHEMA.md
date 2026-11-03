@@ -192,3 +192,4 @@ Security, administrative mutation, and access log records.
 **Indexes**:
 - `{ tenantId: 1, timestamp: -1 }`
 - `{ actorId: 1, timestamp: -1 }`
+

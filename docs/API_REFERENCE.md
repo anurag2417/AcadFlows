@@ -368,3 +368,4 @@ In case of validation failures, authentication errors, or exceptions:
     "roomNumber": "Lab-204"
   }
   ```
+

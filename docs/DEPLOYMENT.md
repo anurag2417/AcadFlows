@@ -136,3 +136,4 @@ Set in Vercel Project Settings:
   ```
 - **Error Tracking**: Integrate Sentry for both `apps/web` and `apps/api` with environment tagging (`production`).
 - **Log Streaming**: Stream stdout logs to Papertrail or Datadog for searchable audit records.
+

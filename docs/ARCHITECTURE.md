@@ -165,3 +165,4 @@ All dashboard pages utilize responsive fluid breakpoints:
 - **Email Delivery Service**: Outbound transactional emails (welcome invites, password resets, fee invoice reminders) routed through Resend / AWS SES with templated HTML layouts.
 - **Audit Logging Engine**: Mutating API calls (`POST`, `PUT`, `PATCH`, `DELETE`) are processed through asynchronous non-blocking audit logger middleware, recording actor, IP, tenant, action, and timestamp.
 - **Report Generation**: Gradebooks, attendance summaries, and student report cards generated dynamically with streamable JSON data and downloadable CSV/PDF export.
+

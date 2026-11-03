@@ -161,3 +161,4 @@ We use conventional commit formatting:
 - `fix(types): enforce type-only import for verbatimModuleSyntax`
 - `docs(api): document platform school verification endpoints`
 - `refactor(web): extract responsive navbar drawer into separate component`
+

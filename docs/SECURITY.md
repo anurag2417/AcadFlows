@@ -137,3 +137,4 @@ If you identify a security vulnerability in AcadFlows:
 1. Do not publicly disclose the issue or open a public GitHub issue.
 2. Email full technical details and reproduction steps to `acadflows00@gmail.com` with the subject `[SECURITY] Vulnerability Report`.
 3. Our engineering team acknowledges reports within 24 hours and provides status updates until resolution.
+

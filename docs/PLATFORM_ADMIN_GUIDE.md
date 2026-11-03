@@ -100,3 +100,4 @@ Used in cases of security breaches, legal orders, or severe terms-of-service vio
 - **Password Security**: The platform super-admin account must maintain a high-entropy password (minimum 16 characters) and multi-factor authentication.
 - **Rotation Schedule**: Rotate `JWT_SECRET` and `JWT_REFRESH_SECRET` periodically using zero-downtime rolling secret rotation.
 - **Audit Trails**: All platform admin actions (approvals, rejections, suspensions) are logged permanently in the platform immutable audit trail.
+

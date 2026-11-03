@@ -77,3 +77,4 @@ Within 48 hours of any SEV-0 or SEV-1 incident, the team must produce a post-mor
 2. **Root cause analysis**: 5-Whys methodology to uncover foundational system or process failure.
 3. **Where we got lucky**: Factors that prevented the incident from being worse.
 4. **Action items**: Preventative technical tasks assigned with owners and strict completion dates.
+

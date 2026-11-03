@@ -41,3 +41,4 @@ This Code of Conduct applies within all community spaces, including the project 
 ## Contact & Reporting
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leadership at `acadflows00@gmail.com`. All complaints will be reviewed and investigated promptly and fairly.
+
