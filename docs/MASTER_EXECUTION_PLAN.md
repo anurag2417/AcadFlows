@@ -199,3 +199,4 @@ To execute this roadmap cleanly and systematically, we will follow this prioriti
 | **8** | **React Native Mobile App Foundation**: Initialize mobile repository, auth screens, and push notification tokens. | Phase 3 | Planned |
 | **9** | **Mobile Communications Hub**: Deploy teacher-parent messaging, circulars, and emergency broadcast dispatches. | Phase 3 | Planned |
 | **10**| **VisionFlow AI Face Attendance**: Train face embedding pipeline, integrate mobile camera snap, and automate classroom roll-call. | Phase 3 | Planned |
+
