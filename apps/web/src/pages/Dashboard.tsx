@@ -10,6 +10,7 @@ import AdminDashboard from '../components/dashboards/AdminDashboard';
 import TeacherDashboard from '../components/dashboards/TeacherDashboard';
 import StudentDashboard from '../components/dashboards/StudentDashboard';
 import GuardianDashboard from '../components/dashboards/GuardianDashboard';
+import PlatformAdminDashboard from '../components/dashboards/PlatformAdminDashboard';
 
 interface DashboardData {
   stats: {
@@ -38,6 +39,11 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchDashboardData() {
       if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (user.isPlatformAdmin || user.email === 'acadflows00@gmail.com') {
         setIsLoading(false);
         return;
       }
@@ -132,6 +138,10 @@ export default function DashboardPage() {
           </button>
         </Card>
       );
+    }
+
+    if (user?.isPlatformAdmin || user?.email === 'acadflows00@gmail.com') {
+      return <PlatformAdminDashboard user={user} />;
     }
 
     switch (user?.role) {

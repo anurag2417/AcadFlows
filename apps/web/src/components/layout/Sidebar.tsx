@@ -75,9 +75,36 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   },
 ];
 
+const platformNavGroups: { label: string; items: NavItem[] }[] = [
+  {
+    label: 'Platform Administration',
+    items: [
+      {
+        label: 'Platform Hub',
+        icon: '🛡️',
+        path: '/dashboard',
+        roles: ['admin', 'teacher', 'student', 'guardian'],
+      },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      {
+        label: 'Profile',
+        icon: '👤',
+        path: '/profile',
+        roles: ['admin', 'teacher', 'student', 'guardian'],
+      },
+    ],
+  },
+];
+
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const role = user?.role || 'student';
+  const isPlatformAdmin = user?.isPlatformAdmin === true || user?.email === 'acadflows00@gmail.com';
+  const activeNavGroups = isPlatformAdmin ? platformNavGroups : navGroups;
 
   return (
     <>
@@ -116,7 +143,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         <nav className="p-3 space-y-5 flex-1">
-          {navGroups.map(group => {
+          {activeNavGroups.map(group => {
             const visibleItems = group.items.filter(item =>
               item.roles.includes(role),
             );
@@ -174,13 +201,16 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         <div className="p-3 border-t border-border mt-auto bg-surface">
           <div className="px-3 py-2 rounded-lg bg-elevated/50">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-              Signed in as
+              {isPlatformAdmin ? 'Platform Access' : 'Signed in as'}
             </p>
             <p className="text-xs text-foreground font-semibold truncate mt-0.5">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-[10px] text-muted capitalize">
-              {role}
+            <p className={cn(
+              "text-[10px] capitalize font-medium",
+              isPlatformAdmin ? "text-primary-600 dark:text-primary-400 font-bold" : "text-muted"
+            )}>
+              {isPlatformAdmin ? 'Founder / Super-Admin' : role}
             </p>
           </div>
 

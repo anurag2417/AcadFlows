@@ -83,8 +83,19 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
 
         <Logo to="/dashboard" size="sm" showText={true} textClassName="hidden sm:inline" />
 
-        {/* Tenant chip */}
-        {tenant && (
+        {/* Tenant chip or Platform Admin Badge */}
+        {user?.isPlatformAdmin || user?.email === 'acadflows00@gmail.com' ? (
+          <span
+            className={cn(
+              'hidden lg:inline-flex items-center gap-1.5 ml-3',
+              'px-3 py-1 rounded-full text-xs font-bold',
+              'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20',
+            )}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" aria-hidden />
+            Platform Super-Admin
+          </span>
+        ) : tenant ? (
           <span
             className={cn(
               'hidden lg:inline-flex items-center gap-1.5 ml-3',
@@ -95,7 +106,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
             <span className="w-1.5 h-1.5 rounded-full bg-primary-500" aria-hidden />
             {tenant.name}
           </span>
-        )}
+        ) : null}
       </div>
 
       {/* Center: page title (breadcrumb-ish) */}

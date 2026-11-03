@@ -41,7 +41,7 @@ export default function TimetableViewPage() {
     return typeof window !== 'undefined' && window.innerWidth < 768 ? 'day' : 'week';
   });
   const [selectedDay, setSelectedDay] = useState(() => {
-    const current = new Date().toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const current = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     return DAYS.includes(current) && current !== 'sunday' ? current : 'monday';
   });
 

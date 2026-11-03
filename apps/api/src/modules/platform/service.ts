@@ -69,6 +69,17 @@ export interface SchoolListItem {
   suspendedReason?: string;
   createdAt: Date;
   updatedAt: Date;
+  settings?: {
+    affiliation?: string;
+    affiliationNumber?: string;
+  };
+  admin?: {
+    name: string;
+    email: string;
+    phone: string;
+    designation: string;
+    status: string;
+  } | null;
   counts: {
     users: number;
     students: number;
@@ -312,10 +323,13 @@ export class PlatformService {
     const enriched: SchoolListItem[] = await Promise.all(
       schools.map(async (s: any) => {
         const tid = s._id.toString();
-        const [userCount, studentCount, teacherCount] = await Promise.all([
+        const [userCount, studentCount, teacherCount, adminUser] = await Promise.all([
           safeCount(User, { tenantId: tid }),
           safeCount(Student, { tenantId: tid, isDeleted: false }),
           safeCount(Teacher, { tenantId: tid, isDeleted: false }),
+          User.findOne({ tenantId: tid, role: 'admin' })
+            .select('firstName lastName email phone bio status')
+            .lean(),
         ]);
 
         return {
@@ -336,6 +350,16 @@ export class PlatformService {
           suspendedReason: s.suspendedReason,
           createdAt: s.createdAt,
           updatedAt: s.updatedAt,
+          settings: s.settings || {},
+          admin: adminUser
+            ? {
+                name: `${adminUser.firstName} ${adminUser.lastName}`.trim(),
+                email: adminUser.email,
+                phone: adminUser.phone || '',
+                designation: adminUser.bio || 'School Administrator',
+                status: adminUser.status,
+              }
+            : null,
           counts: {
             users: userCount,
             students: studentCount,
