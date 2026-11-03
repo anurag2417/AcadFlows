@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/cn';
+import Logo from '../ui/Logo';
 
 interface SidebarProps {
   open: boolean;
@@ -75,14 +76,14 @@ const navGroups: { label: string; items: NavItem[] }[] = [
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const role = user?.role || 'student';
 
   return (
     <>
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden animate-fade-in"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden animate-fade-in"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -90,16 +91,31 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          'fixed left-0 top-16 bottom-0 z-40 w-64',
+          'fixed left-0 top-0 md:top-16 bottom-0 z-50 md:z-40 w-72 max-w-[85vw] md:w-64',
           'bg-surface border-r border-border',
           'transition-transform duration-300 ease-out',
-          'overflow-y-auto',
+          'overflow-y-auto overscroll-contain flex flex-col',
           'md:translate-x-0',
-          open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          open ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0',
         )}
         aria-label="Main navigation"
       >
-        <nav className="p-3 space-y-5">
+        {/* Mobile-only header inside drawer */}
+        <div className="flex items-center justify-between p-4 border-b border-border md:hidden">
+          <Logo to="/dashboard" size="xs" showText={true} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors"
+            aria-label="Close navigation"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <nav className="p-3 space-y-5 flex-1">
           {navGroups.map(group => {
             const visibleItems = group.items.filter(item =>
               item.roles.includes(role),
@@ -121,11 +137,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                       }}
                       className={({ isActive }) =>
                         cn(
-                          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium',
+                          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
                           'transition-colors duration-200',
                           'group',
                           isActive
-                            ? 'bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400'
+                            ? 'bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 font-semibold'
                             : 'text-muted hover:text-foreground hover:bg-elevated',
                         )
                       }
@@ -143,7 +159,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                           </span>
                           <span className="truncate">{item.label}</span>
                           {isActive && (
-                            <span className="ml-auto w-1 h-5 rounded-full bg-primary-500" />
+                            <span className="ml-auto w-1.5 h-4 rounded-full bg-primary-500" />
                           )}
                         </>
                       )}
@@ -155,18 +171,32 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           })}
         </nav>
 
-        <div className="p-3 mt-4 border-t border-border">
-          <div className="px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">
+        <div className="p-3 border-t border-border mt-auto bg-surface">
+          <div className="px-3 py-2 rounded-lg bg-elevated/50">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
               Signed in as
             </p>
-            <p className="text-xs text-foreground font-medium truncate">
+            <p className="text-xs text-foreground font-semibold truncate mt-0.5">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-[10px] text-muted capitalize mt-0.5">
+            <p className="text-[10px] text-muted capitalize">
               {role}
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              logout();
+            }}
+            className="w-full mt-2.5 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
     </>

@@ -49,8 +49,8 @@ export default function DashboardLayout({ children, bare = false }: DashboardLay
         <div
           className={cn(
             // Key: no max-width, no mx-auto. Full width.
-            'w-full',
-            !bare && 'px-4 sm:px-6 lg:px-8 py-6',
+            'w-full max-w-full overflow-x-hidden',
+            !bare && 'px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6',
           )}
         >
           {children}

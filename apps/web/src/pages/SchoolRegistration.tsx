@@ -127,7 +127,7 @@ export default function SchoolRegistrationPage() {
   if (createdSchool) {
     return (
       <div className="min-h-screen flex bg-background text-foreground">
-        <div className="w-full lg:w-[48%] flex flex-col px-6 sm:px-12 lg:px-16 py-10">
+        <div className="w-full lg:w-[48%] flex flex-col px-4 sm:px-8 lg:px-16 py-6 sm:py-10">
           <div className="flex items-center justify-between">
             <Logo to="/" size="md" showText={true} />
             <ThemeToggle />
@@ -300,23 +300,23 @@ export default function SchoolRegistrationPage() {
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
-      <div className="w-full lg:w-[50%] flex flex-col px-6 sm:px-12 lg:px-16 py-8">
+      <div className="w-full lg:w-[50%] flex flex-col px-4 sm:px-8 lg:px-16 py-6 sm:py-8">
         <div className="flex items-center justify-between">
           <Logo to="/" size="md" showText={true} />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <Link
               to="/"
-              className="text-sm font-medium text-muted hover:text-foreground transition-colors"
+              className="text-xs sm:text-sm font-medium text-muted hover:text-foreground transition-colors shrink-0"
             >
               ← Back to home
             </Link>
           </div>
         </div>
 
-        <div className="flex-1 max-w-xl mx-auto w-full py-8">
+        <div className="flex-1 max-w-xl mx-auto w-full py-6 sm:py-8">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
               Register your school
             </h1>
             <p className="mt-2 text-sm text-muted">

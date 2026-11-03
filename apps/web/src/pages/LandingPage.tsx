@@ -291,7 +291,7 @@ export default function LandingPage() {
                 Built for Indian schools
               </div>
 
-              <h1 className="max-w-2xl text-[3rem] font-black leading-[1.02] tracking-[-0.055em] sm:text-[4.15rem] lg:text-[4.6rem]">
+              <h1 className="max-w-2xl text-[2.25rem] xs:text-[2.6rem] sm:text-[3.8rem] lg:text-[4.6rem] font-black leading-[1.06] tracking-[-0.05em]">
                 Run your school
                 <span className="block bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-500 bg-clip-text text-transparent">
                   without the chaos.

@@ -53,7 +53,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
       )}
     >
       {/* Left: menu button + logo */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         {/* Mobile menu button */}
         <button
           type="button"
@@ -61,7 +61,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
           className={cn(
             'md:hidden p-2 rounded-lg',
             'text-muted hover:text-foreground hover:bg-elevated',
-            'transition-colors duration-200',
+            'transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
           )}
           aria-label="Open navigation menu"
         >
@@ -99,8 +99,8 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
       </div>
 
       {/* Center: page title (breadcrumb-ish) */}
-      <div className="flex-1 flex items-center px-4 min-w-0">
-        <h1 className="text-sm font-semibold text-foreground truncate">{title}</h1>
+      <div className="flex-1 flex items-center px-2 sm:px-4 min-w-0">
+        <h1 className="text-xs sm:text-sm font-semibold text-foreground truncate">{title}</h1>
       </div>
 
       {/* Right: actions */}

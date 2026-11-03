@@ -88,7 +88,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-background text-foreground">
       {/* Left: form panel */}
-      <div className="w-full lg:w-[46%] flex flex-col px-6 sm:px-12 lg:px-16 py-10">
+      <div className="w-full lg:w-[46%] flex flex-col px-4 sm:px-8 lg:px-16 py-6 sm:py-10">
         <div className="flex items-center justify-between">
           <Logo to="/" size="md" showText={true} />
           <div className="flex items-center gap-3">

@@ -37,8 +37,13 @@ export default function TimetableViewPage() {
   const [timetable, setTimetable] = useState<any>(null);
   const [entries, setEntries] = useState<Record<string, TimetableEntry[]>>({});
   const [loading, setLoading] = useState(true);
-  const [viewType, setViewType] = useState<'week' | 'day'>('week');
-  const [selectedDay, setSelectedDay] = useState('monday');
+  const [viewType, setViewType] = useState<'week' | 'day'>(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 768 ? 'day' : 'week';
+  });
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const current = new Date().toLocaleDateString('en-US', { weekday: 'lowercase' });
+    return DAYS.includes(current) && current !== 'sunday' ? current : 'monday';
+  });
 
   useEffect(() => {
     fetchTimetable();
