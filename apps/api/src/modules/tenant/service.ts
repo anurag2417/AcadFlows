@@ -1,19 +1,14 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { Tenant } from '../../models/Tenant';
+import { User } from '../../models/User';
 import { AppError } from '../../middleware/error-handler';
 import { Tenant as TenantType } from '@acadflows/shared';
-import {
-  generateUniqueSchoolCode,
-  validateSchoolCode,
-  formatSchoolCode,
-  normalizeSchoolCode,
-} from '../../utils/school-code';
 import { sendSchoolVerificationEmail } from '../../services/email.service';
 
 export class TenantService {
   /* ═══════════════════════════════════════════════════════════
-     CREATE — admin-created tenant (not public registration)
+     CREATE — admin-created tenant (internal/platform admin)
      ═══════════════════════════════════════════════════════════ */
 
   static async create(data: Partial<TenantType>): Promise<any> {
@@ -26,25 +21,21 @@ export class TenantService {
       throw new AppError('Tenant with this slug already exists', 409);
     }
 
-    const schoolCode = await generateUniqueSchoolCode();
-
     const tenant = await Tenant.create({
       ...data,
-      schoolCode,
       status: 'active',
       emailVerified: true,
-      codeGeneratedAt: new Date(),
     });
 
     const tenantObj: any = tenant.toObject();
-    tenantObj.formattedSchoolCode = formatSchoolCode(schoolCode);
     tenantObj.id = tenant._id;
 
     return tenantObj;
   }
 
   /* ═══════════════════════════════════════════════════════════
-     CREATE SCHOOL — public registration (creates pending tenant)
+     CREATE SCHOOL — public registration
+     Creates pending tenant + pending admin user
      ═══════════════════════════════════════════════════════════ */
 
   static async createSchool(data: {
@@ -53,11 +44,39 @@ export class TenantService {
     address?: string;
     phone?: string;
     email?: string;
+    affiliation?: string;
+    affiliationNumber?: string;
+    adminFirstName: string;
+    adminLastName: string;
+    adminEmail: string;
+    adminPassword: string;
+    adminPhone?: string;
+    adminDesignation?: string;
     registrationIp?: string;
     registrationUserAgent?: string;
   }): Promise<any> {
-    if (!data.name) {
+    if (!data.name || !data.name.trim()) {
       throw new AppError('School name is required', 400);
+    }
+    if (!data.adminFirstName || !data.adminLastName) {
+      throw new AppError('Administrator first and last name are required', 400);
+    }
+    if (!data.adminEmail) {
+      throw new AppError('Administrator email is required', 400);
+    }
+    if (!data.adminPassword || data.adminPassword.length < 8) {
+      throw new AppError('Password must be at least 8 characters long', 400);
+    }
+
+    const normalizedAdminEmail = data.adminEmail.toLowerCase().trim();
+
+    // Check if user already exists with this email
+    const existingUser = await User.findOne({ email: normalizedAdminEmail });
+    if (existingUser) {
+      throw new AppError(
+        'An account with this administrator email already exists. Please log in or use another email.',
+        409,
+      );
     }
 
     // Generate slug from name if not provided
@@ -75,9 +94,6 @@ export class TenantService {
       slug = `${slug}-${Math.floor(Math.random() * 1000)}`;
     }
 
-    // Generate unique school code
-    const schoolCode = await generateUniqueSchoolCode();
-
     // Generate email verification token (48h expiry)
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpiresAt = new Date(
@@ -85,48 +101,70 @@ export class TenantService {
     );
 
     const tenant = await Tenant.create({
-      name: data.name,
+      name: data.name.trim(),
       slug,
-      schoolCode,
-      address: data.address || '',
-      phone: data.phone || '',
-      email: data.email || '',
-      // New schools start PENDING — platform admin must approve
+      address: data.address?.trim() || '',
+      phone: data.phone?.trim() || data.adminPhone?.trim() || '',
+      email: data.email?.toLowerCase().trim() || normalizedAdminEmail,
       status: 'pending',
       emailVerified: false,
       verificationToken,
       verificationTokenExpiresAt,
       registrationIp: data.registrationIp,
       registrationUserAgent: data.registrationUserAgent,
+      settings: {
+        affiliation: data.affiliation?.trim() || '',
+        affiliationNumber: data.affiliationNumber?.trim() || '',
+      },
+    });
+
+    // Create the school administrator in pending state (activated upon platform approval)
+    const adminUser = await User.create({
+      tenantId: tenant._id.toString(),
+      email: normalizedAdminEmail,
+      passwordHash: data.adminPassword, // hashed by User pre-save hook
+      firstName: data.adminFirstName.trim(),
+      lastName: data.adminLastName.trim(),
+      role: 'admin',
+      status: 'pending',
+      phone: data.adminPhone?.trim() || data.phone?.trim() || '',
+      emailVerified: false,
+      bio: data.adminDesignation?.trim() || 'School Administrator',
     });
 
     const tenantObj: any = tenant.toObject();
-    tenantObj.formattedSchoolCode = formatSchoolCode(schoolCode);
     tenantObj.id = tenant._id;
+    tenantObj.admin = {
+      id: adminUser._id,
+      email: adminUser.email,
+      firstName: adminUser.firstName,
+      lastName: adminUser.lastName,
+      role: adminUser.role,
+      status: adminUser.status,
+    };
 
-    // Send verification email if we have one
-    if (data.email) {
-      const frontendUrl =
-        process.env.FRONTEND_URL || 'http://localhost:5173';
-      const verifyLink = `${frontendUrl}/verify-school?token=${verificationToken}`;
+    // Send verification email to the administrator
+    const frontendUrl =
+      process.env.FRONTEND_URL || 'http://localhost:5173';
+    const verifyLink = `${frontendUrl}/verify-school?token=${verificationToken}`;
 
-      try {
-        await sendSchoolVerificationEmail(
-          data.email,
-          verifyLink,
-          data.name,
-          'Admin',
-        );
-        console.log(`📧 School verification email sent to ${data.email}`);
-      } catch (err) {
-        console.error('Failed to send school verification email:', err);
-      }
+    try {
+      await sendSchoolVerificationEmail(
+        normalizedAdminEmail,
+        verifyLink,
+        data.name,
+        `${data.adminFirstName} ${data.adminLastName}`.trim(),
+      );
+      console.log(`📧 School verification email sent to ${normalizedAdminEmail}`);
+    } catch (err) {
+      console.error('Failed to send school verification email:', err);
     }
 
-    console.log('🏫 School created (pending):', {
+    console.log('🏫 School & Admin created (pending):', {
       id: tenant._id,
       name: tenant.name,
-      schoolCode: tenant.schoolCode,
+      adminId: adminUser._id,
+      adminEmail: adminUser.email,
     });
 
     return tenantObj;
@@ -167,6 +205,12 @@ export class TenantService {
     tenant.verificationTokenExpiresAt = undefined;
     await tenant.save();
 
+    // Also mark the admin user's email as verified
+    await User.updateMany(
+      { tenantId: tenant._id.toString(), role: 'admin' },
+      { emailVerified: true },
+    );
+
     console.log(`✅ Email verified for tenant ${tenant.name}`);
 
     return { emailVerified: true };
@@ -175,29 +219,6 @@ export class TenantService {
   /* ═══════════════════════════════════════════════════════════
      GETTERS
      ═══════════════════════════════════════════════════════════ */
-
-  static async getBySchoolCode(schoolCode: string): Promise<any> {
-    const normalizedCode = normalizeSchoolCode(schoolCode);
-
-    if (!validateSchoolCode(normalizedCode)) {
-      throw new AppError('Invalid school code format', 400);
-    }
-
-    const tenant = await Tenant.findOne({
-      schoolCode: normalizedCode,
-      status: 'active',
-    });
-
-    if (!tenant) {
-      throw new AppError('School not found with this code', 404);
-    }
-
-    const tenantObj: any = tenant.toObject();
-    tenantObj.formattedSchoolCode = formatSchoolCode(normalizedCode);
-    tenantObj.id = tenant._id;
-
-    return tenantObj;
-  }
 
   static async getById(id: string, tenantId?: string): Promise<any> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -213,7 +234,6 @@ export class TenantService {
     }
 
     const tenantObj: any = tenant.toObject();
-    tenantObj.formattedSchoolCode = formatSchoolCode(tenant.schoolCode);
     tenantObj.id = tenant._id;
 
     return tenantObj;
@@ -226,7 +246,6 @@ export class TenantService {
     }
 
     const tenantObj: any = tenant.toObject();
-    tenantObj.formattedSchoolCode = formatSchoolCode(tenant.schoolCode);
     tenantObj.id = tenant._id;
 
     return tenantObj;
@@ -265,7 +284,6 @@ export class TenantService {
     }
 
     const tenantObj: any = tenant.toObject();
-    tenantObj.formattedSchoolCode = formatSchoolCode(tenant.schoolCode);
     tenantObj.id = tenant._id;
 
     return tenantObj;
@@ -291,7 +309,6 @@ export class TenantService {
       filter.$or = [
         { name: { $regex: options.search, $options: 'i' } },
         { slug: { $regex: options.search, $options: 'i' } },
-        { schoolCode: { $regex: options.search, $options: 'i' } },
         { email: { $regex: options.search, $options: 'i' } },
       ];
     }
@@ -307,7 +324,6 @@ export class TenantService {
     return {
       items: tenants.map(t => {
         const obj: any = t.toObject();
-        obj.formattedSchoolCode = formatSchoolCode(t.schoolCode);
         obj.id = t._id;
         return obj;
       }),
@@ -332,44 +348,9 @@ export class TenantService {
       _id: tenant._id,
       name: tenant.name,
       slug: tenant.slug,
-      schoolCode: tenant.schoolCode,
-      formattedSchoolCode: formatSchoolCode(tenant.schoolCode),
       logoUrl: tenant.logoUrl,
       settings: {
-        currency: tenant.settings?.currency,
-        timezone: tenant.settings?.timezone,
-        language: tenant.settings?.language,
-      },
-    };
-  }
-
-  static async getPublicInfoBySchoolCode(
-    schoolCode: string,
-  ): Promise<any> {
-    const normalizedCode = normalizeSchoolCode(schoolCode);
-
-    if (!validateSchoolCode(normalizedCode)) {
-      throw new AppError('Invalid school code format', 400);
-    }
-
-    const tenant = await Tenant.findOne({
-      schoolCode: normalizedCode,
-      status: 'active',
-    });
-
-    if (!tenant) {
-      throw new AppError('School not found with this code', 404);
-    }
-
-    return {
-      id: tenant._id,
-      _id: tenant._id,
-      name: tenant.name,
-      slug: tenant.slug,
-      schoolCode: tenant.schoolCode,
-      formattedSchoolCode: formatSchoolCode(tenant.schoolCode),
-      logoUrl: tenant.logoUrl,
-      settings: {
+        affiliation: tenant.settings?.affiliation,
         currency: tenant.settings?.currency,
         timezone: tenant.settings?.timezone,
         language: tenant.settings?.language,
@@ -392,47 +373,11 @@ export class TenantService {
     return !!tenant;
   }
 
-  static async validateSchoolCode(
-    schoolCode: string,
-  ): Promise<{ valid: boolean; tenant?: any }> {
-    try {
-      const normalizedCode = normalizeSchoolCode(schoolCode);
-
-      if (!validateSchoolCode(normalizedCode)) {
-        return { valid: false };
-      }
-
-      const tenant = await Tenant.findOne({
-        schoolCode: normalizedCode,
-        status: 'active',
-      });
-
-      if (!tenant) {
-        return { valid: false };
-      }
-
-      return {
-        valid: true,
-        tenant: {
-          id: tenant._id,
-          _id: tenant._id,
-          name: tenant.name,
-          schoolCode: tenant.schoolCode,
-          formattedSchoolCode: formatSchoolCode(tenant.schoolCode),
-        },
-      };
-    } catch (error) {
-      console.error('Error validating school code:', error);
-      throw error;
-    }
-  }
-
   static async hasAdmin(tenantId: string): Promise<boolean> {
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return false;
     }
 
-    const User = mongoose.model('User');
     const admin = await User.findOne({
       tenantId,
       role: 'admin',

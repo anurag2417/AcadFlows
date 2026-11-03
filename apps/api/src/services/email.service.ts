@@ -258,7 +258,6 @@ export async function sendSchoolApprovedEmail(
   to: string,
   schoolName: string,
   adminName: string,
-  schoolCode: string,
 ): Promise<void> {
   const subject = `🎉 ${schoolName} is approved on AcadFlows`;
 
@@ -274,13 +273,12 @@ export async function sendSchoolApprovedEmail(
           </p>
 
           <p style="color: #78716C; font-size: 15px; line-height: 24px;">
-            <strong>${schoolName}</strong> has been approved on AcadFlows. Share the school code below with your teachers, students, and guardians so they can join.
+            <strong>${schoolName}</strong> has been approved on AcadFlows! Your administrator account is now active and ready to use.
           </p>
 
-          <div style="background: #FFF1D1; border: 1px solid #FF9100; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center;">
-            <p style="margin: 0 0 8px; color: #78716C; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;">Your School Code</p>
-            <p style="margin: 0; color: #1E140F; font-size: 24px; font-weight: 900; font-family: 'Courier New', monospace; letter-spacing: 0.1em;">${schoolCode}</p>
-          </div>
+          <p style="color: #78716C; font-size: 15px; line-height: 24px;">
+            You can log in right away using your administrator email (<strong>${to}</strong>) and password to begin setting up your academic year, classes, and onboarding teachers.
+          </p>
 
           <div style="text-align: center; margin: 32px 0;">
             <a href="${process.env.FRONTEND_URL || 'https://acadflows.in'}/login" style="display: inline-block; background: #DF301C; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; font-size: 15px;">
@@ -289,14 +287,14 @@ export async function sendSchoolApprovedEmail(
           </div>
 
           <p style="color: #78716C; font-size: 13px; line-height: 20px; margin: 24px 0 0;">
-            <strong>Important:</strong> Keep this code private. Only share it with people who should have access to your school.
+            If you need any assistance getting started, reply directly to this email or reach out to our team at support@acadflows.in.
           </p>
         </div>
       </body>
     </html>
   `;
 
-  const text = `Your school is approved\n\n${schoolName} has been approved on AcadFlows.\n\nSchool Code: ${schoolCode}\n\nLogin: ${process.env.FRONTEND_URL || 'https://acadflows.in'}/login`;
+  const text = `Your school is approved\n\n${schoolName} has been approved on AcadFlows.\nYour administrator account is now active.\n\nLogin: ${process.env.FRONTEND_URL || 'https://acadflows.in'}/login`;
 
   await sendEmail({ to, subject, html, text });
 }

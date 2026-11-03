@@ -91,14 +91,6 @@ export const isValidIndianPhone = (phone: string): boolean =>
 export const formatPercent = (value: number): string =>
   `${Math.round(value)}%`;
 
-/** Format a school code as "AB12-CD34-EF" */
-export const formatSchoolCode = (code: string | undefined | null): string => {
-  if (!code) return '';
-  const clean = code.replace(/[-\s]/g, '').toUpperCase();
-  if (clean.length !== 10) return code;
-  return `${clean.slice(0, 4)}-${clean.slice(4, 8)}-${clean.slice(8)}`;
-};
-
 /** Initials from a name: "Priya Sharma" → "PS" */
 export const getInitials = (firstName?: string, lastName?: string): string => {
   const f = (firstName || '').trim();

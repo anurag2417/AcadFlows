@@ -121,7 +121,7 @@ export class PlatformController {
       res.json({
         success: true,
         data: school,
-        message: `School "${school.name}" approved. School code: ${school.formattedSchoolCode}`,
+        message: `School "${school.name}" has been approved successfully.`,
       });
     } catch (error) {
       next(error);

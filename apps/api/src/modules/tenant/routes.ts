@@ -78,13 +78,8 @@ router.post('/verify-email/:token', TenantController.verifySchoolEmail);
    PUBLIC — LOOKUPS + VALIDATION
    ───────────────────────────────────────────────────────────── */
 
-router.get(
-  '/public/code/:schoolCode',
-  TenantController.getPublicInfoBySchoolCode,
-);
 router.get('/public/:slug', TenantController.getPublicInfo);
 
-router.post('/validate-code', TenantController.validateSchoolCode);
 router.get('/validate/:tenantId', TenantController.validateTenant);
 router.get('/has-admin/:tenantId', TenantController.hasAdmin);
 
@@ -121,11 +116,10 @@ router.get(
 );
 
 /* ─────────────────────────────────────────────────────────────
-   PUBLIC SLUG/CODE LOOKUPS
+   PUBLIC SLUG LOOKUP
    ───────────────────────────────────────────────────────────── */
 
 router.get('/slug/:slug', TenantController.getBySlug);
-router.get('/code/:schoolCode', TenantController.getBySchoolCode);
 
 /* ─────────────────────────────────────────────────────────────
    CATCH-ALL — must be LAST

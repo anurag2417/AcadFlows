@@ -52,7 +52,6 @@ export type TenantStatus =
 export interface ITenant extends Document {
   name: string;
   slug: string;
-  schoolCode: string;
   status: TenantStatus;
 
   // Approval workflow
@@ -70,10 +69,6 @@ export interface ITenant extends Document {
   // Registration audit
   registrationIp?: string;
   registrationUserAgent?: string;
-
-  // Code management
-  codeGeneratedAt?: Date;
-  codeExpiresAt?: Date;
 
   // School info
   address?: string;
@@ -148,14 +143,6 @@ const tenantSchema = new Schema<ITenant>(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, trim: true, lowercase: true },
 
-    // ⚠️ No index: true — the unique index is declared below
-    schoolCode: {
-      type: String,
-      required: true,
-      trim: true,
-      uppercase: true,
-    },
-
     // ⚠️ No index: true — the index is declared below
     status: {
       type: String,
@@ -180,10 +167,6 @@ const tenantSchema = new Schema<ITenant>(
     registrationIp: String,
     registrationUserAgent: String,
 
-    // Code management
-    codeGeneratedAt: Date,
-    codeExpiresAt: Date,
-
     // School info
     address: { type: String, trim: true },
     phone: { type: String, trim: true },
@@ -202,7 +185,6 @@ const tenantSchema = new Schema<ITenant>(
    ───────────────────────────────────────────────────────────── */
 
 tenantSchema.index({ slug: 1 }, { unique: true });
-tenantSchema.index({ schoolCode: 1 }, { unique: true });
 tenantSchema.index({ status: 1 });
 tenantSchema.index({ verificationToken: 1 });
 

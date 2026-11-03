@@ -93,17 +93,6 @@ export default function AdminDashboard({
               Here's what's happening at {tenant?.name || 'your school'}
             </p>
           </div>
-
-          <div className="flex items-center gap-4">
-            {tenant?.schoolCode && (
-              <div className="px-4 py-2 rounded-lg bg-elevated">
-                <p className="text-xs text-muted">School Code</p>
-                <p className="font-mono font-bold text-sm text-foreground">
-                  {tenant.formattedSchoolCode || tenant.schoolCode}
-                </p>
-              </div>
-            )}
-          </div>
         </div>
       </Card>
 

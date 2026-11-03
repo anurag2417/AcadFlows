@@ -265,16 +265,6 @@ export const listTenantsSchema = z
   })
   .strict();
 
-export const validateSchoolCodeSchema = z
-  .object({
-    schoolCode: z
-      .string()
-      .min(1)
-      .max(20)
-      .regex(/^[A-Z0-9-]+$/),
-  })
-  .strict();
-
 export const createSchoolSchema = z
   .object({
     name: z.string().min(1).max(100),
@@ -287,6 +277,14 @@ export const createSchoolSchema = z
     address: z.string().max(200).optional(),
     phone: z.string().max(20).optional(),
     email: z.string().email().max(100).toLowerCase().trim().optional(),
+    affiliation: z.string().max(100).optional(),
+    affiliationNumber: z.string().max(100).optional(),
+    adminFirstName: z.string().min(1).max(100),
+    adminLastName: z.string().min(1).max(100),
+    adminEmail: z.string().email().max(100).toLowerCase().trim(),
+    adminPassword: z.string().min(8).max(100),
+    adminPhone: z.string().max(20).optional(),
+    adminDesignation: z.string().max(100).optional(),
   })
   .strict();
 
@@ -341,4 +339,3 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreateTenantInput = z.infer<typeof createTenantSchema>;
 export type UpdateTenantInput = z.infer<typeof updateTenantSchema>;
 export type CreateSchoolInput = z.infer<typeof createSchoolSchema>;
-export type ValidateSchoolCodeInput = z.infer<typeof validateSchoolCodeSchema>;

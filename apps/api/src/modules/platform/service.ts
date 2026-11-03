@@ -55,8 +55,6 @@ export interface SchoolListItem {
   _id: string;
   name: string;
   slug: string;
-  schoolCode: string;
-  formattedSchoolCode: string;
   status: string;
   email: string;
   phone: string;
@@ -114,11 +112,6 @@ export interface UserListResult {
 /* ─────────────────────────────────────────────────────────────
    Helpers
    ───────────────────────────────────────────────────────────── */
-
-function formatSchoolCode(code: string): string {
-  if (!code || code.length !== 10) return code || '';
-  return `${code.substring(0, 4)}-${code.substring(4, 8)}-${code.substring(8, 10)}`;
-}
 
 async function safeCount(
   model: mongoose.Model<any>,
@@ -194,7 +187,7 @@ export class PlatformService {
       const recentSchools = await Tenant.find({})
         .sort({ createdAt: -1 })
         .limit(5)
-        .select('name schoolCode status createdAt')
+        .select('name slug status createdAt')
         .lean();
 
       recentSchools.forEach((s: any) => {
@@ -303,7 +296,6 @@ export class PlatformService {
       query.$or = [
         { name: { $regex: filters.search, $options: 'i' } },
         { slug: { $regex: filters.search, $options: 'i' } },
-        { schoolCode: { $regex: filters.search, $options: 'i' } },
         { email: { $regex: filters.search, $options: 'i' } },
       ];
     }
@@ -330,8 +322,6 @@ export class PlatformService {
           _id: tid,
           name: s.name,
           slug: s.slug,
-          schoolCode: s.schoolCode,
-          formattedSchoolCode: formatSchoolCode(s.schoolCode),
           status: s.status,
           email: s.email || '',
           phone: s.phone || '',
@@ -385,7 +375,6 @@ export class PlatformService {
     return {
       ...school,
       _id: school._id.toString(),
-      formattedSchoolCode: formatSchoolCode(school.schoolCode),
       isPlatformTenant,
       users: users.map((u: any) => ({
         _id: u._id.toString(),
@@ -418,7 +407,6 @@ export class PlatformService {
     school.status = 'active';
     school.approvedBy = approverEmail;
     school.approvedAt = new Date();
-    school.codeGeneratedAt = new Date();
 
     school.rejectionReason = undefined;
     school.rejectedAt = undefined;
@@ -426,15 +414,24 @@ export class PlatformService {
 
     await school.save();
 
-    if (school.email) {
+    // Activate the school's administrator account(s)
+    await User.updateMany(
+      { tenantId, role: 'admin', status: 'pending' },
+      { status: 'active', approvedBy: approverEmail, approvedAt: new Date() },
+    );
+
+    const adminUser = await User.findOne({ tenantId, role: 'admin' });
+    const adminName = adminUser ? `${adminUser.firstName} ${adminUser.lastName}` : 'Administrator';
+    const recipientEmail = adminUser?.email || school.email;
+
+    if (recipientEmail) {
       try {
         await sendSchoolApprovedEmail(
-          school.email,
+          recipientEmail,
           school.name,
-          'Admin',
-          formatSchoolCode(school.schoolCode),
+          adminName,
         );
-        console.log(`📧 Approval email sent to ${school.email}`);
+        console.log(`📧 Approval email sent to ${recipientEmail}`);
       } catch (err) {
         console.error('Failed to send school approval email:', err);
       }
@@ -443,8 +440,7 @@ export class PlatformService {
     return {
       _id: school._id.toString(),
       name: school.name,
-      schoolCode: school.schoolCode,
-      formattedSchoolCode: formatSchoolCode(school.schoolCode),
+      slug: school.slug,
       status: school.status,
     };
   }
@@ -636,7 +632,7 @@ export class PlatformService {
 
     const tenantIds = [...new Set(users.map((u: any) => u.tenantId))];
     const tenants = await Tenant.find({ _id: { $in: tenantIds } })
-      .select('name slug schoolCode')
+      .select('name slug')
       .lean();
     const tenantMap = new Map(tenants.map((t: any) => [t._id.toString(), t]));
 
@@ -680,7 +676,7 @@ export class PlatformService {
     }
 
     const tenant = await Tenant.findById(user.tenantId)
-      .select('name slug schoolCode')
+      .select('name slug')
       .lean();
 
     return {

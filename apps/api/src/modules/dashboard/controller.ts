@@ -47,8 +47,6 @@ export class DashboardController {
           tenant: {
             id: authReq.user.tenantId,
             name: '',
-            schoolCode: '',
-            formattedSchoolCode: '',
           },
           stats,
           recentActivity: [],

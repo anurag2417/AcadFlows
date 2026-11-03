@@ -23,7 +23,6 @@ import { AcademicYear } from '../models/AcademicYear';
 import { Grade } from '../models/Grade';
 import { Section } from '../models/Section';
 import { Subject } from '../models/Subject';
-import { generateSchoolCode } from '../utils/random';
 
 /* ─────────────────────────────────────────────────────────────
    Sample data
@@ -332,7 +331,6 @@ async function seedSchool(spec: SchoolSpec) {
   const tenant = await Tenant.create({
     name: spec.name,
     slug: spec.slug,
-    schoolCode: generateSchoolCode(),
     address: spec.address,
     phone: spec.phone,
     email: spec.email,
@@ -349,7 +347,7 @@ async function seedSchool(spec: SchoolSpec) {
   });
 
   const tid = tenant._id.toString();
-  console.log(`🏫 Created school: ${tenant.name} (${tenant.schoolCode})`);
+  console.log(`🏫 Created school: ${tenant.name} (${tenant.slug})`);
 
   /* ── 2. Academic Year ── */
   const academicYear = await AcademicYear.create({
@@ -655,8 +653,6 @@ async function main() {
 
   for (const { spec, result } of results) {
     console.log(`\n🏫 ${spec.name}`);
-    console.log(`   School Code: ${result.tenant.schoolCode}`);
-    console.log(`   Formatted:   ${formatSchoolCode(result.tenant.schoolCode)}`);
     console.log(`   Slug:        ${spec.slug}`);
     console.log('');
     console.log('   👨‍💼 Admin');
@@ -712,11 +708,6 @@ async function main() {
 
   await mongoose.disconnect();
   console.log('\n👋 Disconnected. Done.\n');
-}
-
-function formatSchoolCode(code: string): string {
-  if (!code || code.length !== 10) return code || '';
-  return `${code.substring(0, 4)}-${code.substring(4, 8)}-${code.substring(8, 10)}`;
 }
 
 main().catch(err => {

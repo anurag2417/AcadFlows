@@ -5,25 +5,34 @@ export interface TenantInfo {
   _id?: string;
   name: string;
   slug: string;
-  schoolCode: string;
-  formattedSchoolCode: string;
   logoUrl?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
   settings?: {
     currency?: string;
     timezone?: string;
     language?: string;
     emailDomain?: string;
+    affiliation?: string;
+    affiliationNumber?: string;
   };
 }
 
-export interface SchoolCodeValidation {
-  valid: boolean;
-  tenant?: {
-    id: string;
-    name: string;
-    schoolCode: string;
-    formattedSchoolCode: string;
-  };
+export interface CreateSchoolInput {
+  name: string;
+  slug?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  affiliation?: string;
+  affiliationNumber?: string;
+  adminFirstName: string;
+  adminLastName: string;
+  adminEmail: string;
+  adminPassword: string;
+  adminPhone?: string;
+  adminDesignation?: string;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -44,111 +53,66 @@ const PLATFORM_HOST_SUFFIXES = [
   '127.0.0.1',
 ];
 
-/** Subdomains that are reserved even on the tenant's own domain */
-const RESERVED_SUBDOMAINS = new Set([
-  'www',
-  'app',
-  'api',
-  'admin',
-  'dashboard',
-  'portal',
-  'auth',
-  'mail',
-  'static',
-  'cdn',
-  'assets',
-]);
-
 /**
- * Returns true if the current host is a platform host (Vercel, Render, etc.)
- * For those, we NEVER treat the first part as a tenant subdomain.
- */
-function isPlatformHost(hostname: string): boolean {
-  return PLATFORM_HOST_SUFFIXES.some(
-    suffix => hostname === suffix || hostname.endsWith(`.${suffix}`),
-  );
-}
-
-/**
- * Get tenant slug from current URL.
+ * Extract tenant slug from current URL/hostname or path.
  *
- * Priority:
- *   1. ?tenant= query param (always wins)
- *   2. Subdomain — only if the host is NOT a platform host
- *   3. URL path prefix /t/<slug> (optional)
- *
- * Returns null if no tenant slug can be resolved.
+ * Priority order:
+ * 1. Path-based: /:tenantSlug/... (e.g. /dpsnoida/login)
+ * 2. Query param: ?tenant=dpsnoida
+ * 3. Subdomain: dpsnoida.acadflows.in (production custom domains)
  */
 export function getTenantSlugFromURL(): string | null {
   if (typeof window === 'undefined') return null;
 
-  // 1. Query param wins
+  // 1. Path prefix check (matches /:slug/... if not a root route)
+  const pathname = window.location.pathname;
+  const segments = pathname.split('/').filter(Boolean);
+  const reservedPaths = [
+    'login',
+    'dashboard',
+    'school',
+    'students',
+    'teachers',
+    'academic',
+    'attendance',
+    'assignments',
+    'gradebook',
+    'timetable',
+    'settings',
+    'profile',
+    'forgot-password',
+    'reset-password',
+    'verify-school',
+  ];
+
+  if (segments.length > 0 && !reservedPaths.includes(segments[0])) {
+    return segments[0];
+  }
+
+  // 2. Query param fallback (dev friendly: ?tenant=dpsnoida)
   const params = new URLSearchParams(window.location.search);
-  const tenantParam = params.get('tenant');
-  if (tenantParam) return tenantParam;
+  const queryTenant = params.get('tenant');
+  if (queryTenant) return queryTenant;
 
+  // 3. Subdomain detection (only on custom domains like dpsnoida.acadflows.in)
   const hostname = window.location.hostname;
+  const isPlatformHost = PLATFORM_HOST_SUFFIXES.some(suffix =>
+    hostname.endsWith(suffix),
+  );
 
-  // 2. Skip subdomain detection on platform hosts
-  if (isPlatformHost(hostname)) {
+  if (isPlatformHost) {
     return null;
   }
 
-  // 3. Subdomain detection (only on custom domains like dpsnoida.acadflows.in)
   const parts = hostname.split('.');
-
   if (parts.length >= 3) {
     const candidate = parts[0];
-    if (candidate && !RESERVED_SUBDOMAINS.has(candidate)) {
-      return candidate;
-    }
-  }
-
-  // Two-part hostname (e.g., "dpsnoida.localhost" in dev)
-  if (parts.length === 2) {
-    const candidate = parts[0];
-    if (candidate && candidate !== 'localhost' && !RESERVED_SUBDOMAINS.has(candidate)) {
+    if (candidate !== 'www' && candidate !== 'app' && candidate !== 'api') {
       return candidate;
     }
   }
 
   return null;
-}
-
-/**
- * Validate a school code.
- */
-export async function validateSchoolCode(
-  schoolCode: string,
-): Promise<SchoolCodeValidation> {
-  try {
-    const response = await api.post('/tenants/validate-code', { schoolCode });
-
-    if (response.data.success && response.data.data) {
-      return { valid: true, tenant: response.data.data };
-    }
-
-    return { valid: false };
-  } catch (error: any) {
-    if (error.response?.status === 404) return { valid: false };
-    if (error.response?.status === 400) return { valid: false };
-    throw error;
-  }
-}
-
-/**
- * Get tenant info by school code.
- */
-export async function getTenantBySchoolCode(
-  schoolCode: string,
-): Promise<TenantInfo | null> {
-  try {
-    const response = await api.get(`/tenants/public/code/${schoolCode}`);
-    return response.data.data;
-  } catch (error) {
-    // Silently swallow — callers handle null as "not found"
-    return null;
-  }
 }
 
 /**
@@ -164,8 +128,6 @@ export async function getTenantInfo(slug: string): Promise<TenantInfo | null> {
     const response = await api.get(`/tenants/public/${slug}`);
     return response.data.data;
   } catch (error: any) {
-    // 404 is expected — the slug just doesn't exist.
-    // Don't log to console; the caller handles null gracefully.
     if (error?.response?.status !== 404) {
       console.warn('Failed to fetch tenant info:', error?.message);
     }
@@ -209,24 +171,9 @@ export function getTenantDisplayName(tenant: TenantInfo | null): string {
 }
 
 /**
- * Format school code for display.
+ * Create a new school and administrator account.
  */
-export function formatSchoolCodeForDisplay(code: string): string {
-  if (!code) return '';
-  const clean = code.replace(/[-\s]/g, '').toUpperCase();
-  if (clean.length !== 10) return code;
-  return `${clean.substring(0, 4)}-${clean.substring(4, 8)}-${clean.substring(8, 10)}`;
-}
-
-/**
- * Create a new school (for admin registration).
- */
-export async function createSchool(data: {
-  name: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-}): Promise<TenantInfo> {
+export async function createSchool(data: CreateSchoolInput): Promise<any> {
   const response = await api.post('/tenants/create-school', data);
 
   const schoolData = response.data.data;

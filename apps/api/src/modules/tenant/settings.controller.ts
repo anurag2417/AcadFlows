@@ -71,7 +71,6 @@ export class TenantSettingsController {
         data: {
           name: tenant.name,
           slug: tenant.slug,
-          schoolCode: tenant.schoolCode,
           address: tenant.address || '',
           phone: tenant.phone || '',
           email: tenant.email || '',

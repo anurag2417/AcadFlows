@@ -4,7 +4,6 @@ import { TenantService } from './service';
 import { AppError } from '../../middleware/error-handler';
 import { AuthRequest } from '../../middleware/auth';
 import { isPlatformAdminEmail } from '../../utils/platform-admin';
-import { formatSchoolCode } from '../../utils/school-code';
 import { config } from '../../config';
 import { z } from 'zod';
 import {
@@ -34,6 +33,8 @@ const createTenantSchema = z.object({
       currency: z.string().optional(),
       language: z.string().optional(),
       emailDomain: z.string().optional(),
+      affiliation: z.string().optional(),
+      affiliationNumber: z.string().optional(),
     })
     .optional(),
 });
@@ -61,6 +62,8 @@ const updateTenantSchema = z.object({
       currency: z.string().optional(),
       language: z.string().optional(),
       emailDomain: z.string().optional(),
+      affiliation: z.string().optional(),
+      affiliationNumber: z.string().optional(),
     })
     .optional(),
 });
@@ -74,16 +77,22 @@ const listTenantsSchema = z.object({
   search: z.string().optional(),
 });
 
-const validateSchoolCodeSchema = z.object({
-  schoolCode: z.string().min(1, 'School code is required'),
-});
-
 const createSchoolSchema = z.object({
   name: z.string().min(1, 'School name is required'),
   slug: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional(),
+  affiliation: z.string().optional(),
+  affiliationNumber: z.string().optional(),
+
+  // Administrator registration fields
+  adminFirstName: z.string().min(1, 'Administrator first name is required'),
+  adminLastName: z.string().min(1, 'Administrator last name is required'),
+  adminEmail: z.string().email('Valid administrator email is required'),
+  adminPassword: z.string().min(8, 'Password must be at least 8 characters long'),
+  adminPhone: z.string().optional(),
+  adminDesignation: z.string().optional(),
 });
 
 /* ─────────────────────────────────────────────────────────────
@@ -93,7 +102,7 @@ const createSchoolSchema = z.object({
 export class TenantController {
   /* ═══════════════════════════════════════════════════════════
      SCHOOL CREATION — PUBLIC, RATE-LIMITED
-     Creates a `pending` tenant and notifies the platform admin.
+     Creates a `pending` tenant and initial pending admin user.
      ═══════════════════════════════════════════════════════════ */
 
   static async createSchool(req: Request, res: Response, next: NextFunction) {
@@ -106,20 +115,20 @@ export class TenantController {
         registrationUserAgent: req.get('user-agent') || '',
       });
 
-      console.log('✅ School created (pending):', {
+      console.log('✅ School & Admin created (pending):', {
         id: tenant.id,
         name: tenant.name,
-        schoolCode: tenant.schoolCode,
+        adminEmail: tenant.admin?.email,
       });
 
-      // ── Notify the platform admin (founder) ──
+      // ── Notify platform admin ──
       if (config.platformAdmin.email) {
         const reviewLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/platform-admin/schools/pending`;
         try {
           await sendSchoolPendingApprovalEmail(
             config.platformAdmin.email,
             tenant.name,
-            tenant.email || 'N/A',
+            tenant.email || tenant.admin?.email || 'N/A',
             tenant.phone || 'N/A',
             reviewLink,
           );
@@ -127,85 +136,70 @@ export class TenantController {
             `📧 School pending notification sent to platform admin: ${config.platformAdmin.email}`,
           );
         } catch (emailErr) {
-          // Don't fail the request if the email fails
-          console.error('Failed to notify platform admin:', emailErr);
+          console.error(
+            'Failed to notify platform admin of pending school:',
+            emailErr,
+          );
         }
-      } else {
-        console.warn(
-          '⚠️  PLATFORM_ADMIN_EMAIL not set — platform admin will not be notified',
-        );
       }
 
       res.status(201).json({
         success: true,
         data: tenant,
         message:
-          'School registered successfully! Your registration is pending approval. You will receive an email once it is reviewed.',
+          'School registration submitted successfully! Please check your email to verify your administrator account.',
       });
     } catch (error) {
-      console.error('❌ School creation error:', error);
       next(error);
     }
   }
 
   /* ═══════════════════════════════════════════════════════════
-     VERIFICATION + VALIDATION
+     EMAIL VERIFICATION
      ═══════════════════════════════════════════════════════════ */
 
-  /**
-   * Public — verify a school's email using the token sent at registration.
-   */
-  static async verifySchoolEmail(req: Request, res: Response, next: NextFunction) {
+  static async verifySchoolEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
       const { token } = req.params;
-
-      if (!token) {
-        throw new AppError('Verification token is required', 400);
-      }
-
       const result = await TenantService.verifySchoolEmail(token);
-
       res.json({
         success: true,
         data: result,
-        message:
-          'Email verified! Your school is now pending manual approval. You will receive another email once approved.',
+        message: 'Email verified successfully. Your school is awaiting platform approval.',
       });
     } catch (error) {
       next(error);
     }
   }
 
-  static async validateSchoolCode(req: Request, res: Response, next: NextFunction) {
+  /* ═══════════════════════════════════════════════════════════
+     LOOKUPS
+     ═══════════════════════════════════════════════════════════ */
+
+  static async getBySlug(req: Request, res: Response, next: NextFunction) {
     try {
-      const validated = validateSchoolCodeSchema.parse(req.body);
-      const result = await TenantService.validateSchoolCode(
-        validated.schoolCode,
-      );
-
-      console.log('📊 Validation result:', result);
-
-      if (!result.valid) {
-        return res.status(404).json({
-          success: false,
-          error: 'Invalid school code. Please check and try again.',
-          data: null,
-        });
-      }
-
+      const tenant = await TenantService.getBySlug(req.params.slug);
       res.json({
         success: true,
-        data: result.tenant,
-        message: `School found: ${result.tenant.name}`,
+        data: tenant,
       });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid request: ' + error.errors[0].message,
-        });
-      }
-      console.error('❌ School code validation error:', error);
+      next(error);
+    }
+  }
+
+  static async getPublicInfo(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tenant = await TenantService.getPublicInfo(req.params.slug);
+      res.json({
+        success: true,
+        data: tenant,
+      });
+    } catch (error) {
       next(error);
     }
   }
@@ -236,85 +230,26 @@ export class TenantController {
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     PUBLIC TENANT LOOKUPS
-     ═══════════════════════════════════════════════════════════ */
-
-  static async getBySlug(req: Request, res: Response, next: NextFunction) {
-    try {
-      const tenant = await TenantService.getBySlug(req.params.slug);
-      res.json({
-        success: true,
-        data: tenant,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async getBySchoolCode(req: Request, res: Response, next: NextFunction) {
-    try {
-      const tenant = await TenantService.getBySchoolCode(
-        req.params.schoolCode,
-      );
-      res.json({
-        success: true,
-        data: tenant,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async getPublicInfo(req: Request, res: Response, next: NextFunction) {
-    try {
-      const tenant = await TenantService.getPublicInfo(req.params.slug);
-      res.json({
-        success: true,
-        data: tenant,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async getPublicInfoBySchoolCode(
+  static async getPublicCurrent(
     req: Request,
     res: Response,
     next: NextFunction,
   ) {
     try {
-      const { schoolCode } = req.params;
-      const tenant = await TenantService.getPublicInfoBySchoolCode(schoolCode);
-      res.json({
-        success: true,
-        data: tenant,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async getPublicCurrent(req: Request, res: Response, next: NextFunction) {
-    try {
-      console.log('🔍 Getting public current tenant');
-
-      let tenantId =
-        req.cookies?.tenantId || (req.headers['x-tenant-id'] as string);
-
-      if (!tenantId) {
-        tenantId = req.query.tenantId as string;
-      }
+      const tenantId =
+        (req.headers['x-tenant-id'] as string) ||
+        req.cookies?.acadflows_tenant_id ||
+        (req.query.tenantId as string);
 
       if (!tenantId) {
         return res.status(404).json({
           success: false,
-          error: 'No tenant context found',
+          error: 'No tenant identifier provided',
           data: null,
         });
       }
 
-      let tenant;
+      let tenant: any = null;
       try {
         if (mongoose.Types.ObjectId.isValid(tenantId)) {
           tenant = await TenantService.getById(tenantId);
@@ -338,8 +273,6 @@ export class TenantController {
         ...tenant,
         id: tenant._id || tenant.id,
         _id: tenant._id || tenant.id,
-        formattedSchoolCode:
-          tenant.formattedSchoolCode || formatSchoolCode(tenant.schoolCode),
       };
 
       console.log('✅ Public tenant found:', tenantObj.name);
@@ -404,9 +337,7 @@ export class TenantController {
       res.status(201).json({
         success: true,
         data: tenant,
-        message:
-          'School created successfully! Your school code is: ' +
-          tenant.formattedSchoolCode,
+        message: 'School created successfully',
       });
     } catch (error) {
       next(error);
@@ -438,6 +369,7 @@ export class TenantController {
       const options = auth && isPlatformAdminEmail(auth.email)
         ? validated
         : { ...validated, tenantId: auth?.tenantId };
+
       const result = await TenantService.list(options);
       res.json({
         success: true,

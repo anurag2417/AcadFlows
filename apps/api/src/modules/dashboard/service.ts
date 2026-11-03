@@ -21,8 +21,6 @@ interface UserData {
 interface TenantData {
   id: string;
   name: string;
-  schoolCode: string;
-  formattedSchoolCode: string;
 }
 
 interface DashboardStats {
@@ -197,8 +195,6 @@ export class DashboardService {
       tenant: {
         id: tenant._id.toString(),
         name: tenant.name,
-        schoolCode: tenant.schoolCode,
-        formattedSchoolCode: this.formatSchoolCode(tenant.schoolCode),
       },
       stats,
       recentActivity,
@@ -676,11 +672,6 @@ export class DashboardService {
     if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
     if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
     return 'Just now';
-  }
-
-  private static formatSchoolCode(code: string): string {
-    if (!code || code.length !== 10) return code || '';
-    return `${code.substring(0, 4)}-${code.substring(4, 8)}-${code.substring(8, 10)}`;
   }
 
   static async getStudents(tenantId: string): Promise<any[]> {
