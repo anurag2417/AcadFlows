@@ -23,8 +23,8 @@ export interface ITimetableEntry extends Document {
   dayOfWeek: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
   startTime: string;
   endTime: string;
-  subjectId: string;
-  teacherId: string;
+  subjectId?: string;
+  teacherId?: string;
   sectionId: string;
   gradeId: string;
   roomId?: string;
@@ -106,12 +106,12 @@ const timetableEntrySchema = new Schema<ITimetableEntry>({
   },
   subjectId: {
     type: String,
-    required: true,
+    required: false,
     index: true,
   },
   teacherId: {
     type: String,
-    required: true,
+    required: false,
     index: true,
   },
   sectionId: {

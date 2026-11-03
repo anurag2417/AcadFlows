@@ -7,6 +7,7 @@ import { Teacher } from '../../models/Teacher';
 import { AppError } from '../../middleware/error-handler';
 import { attachRefs } from '../../utils/attach-refs';
 import { AcademicYear } from '../../models/AcademicYear';
+import { TeacherSubject } from '../../models/TeacherSubject';
 
 const timetableEntryRefs = {
   subjectId: { model: Subject, fields: 'name code' },
@@ -177,14 +178,25 @@ export class TimetableService {
 
     // Validate time format
     this.validateTime(data.startTime, data.endTime);
-    const [subject, section, grade, teacher, room] = await Promise.all([
-      Subject.findOne({ _id: data.subjectId, tenantId }).select('_id'),
+    const [subject, section, grade, teacher, assignment, room] = await Promise.all([
+      data.subjectId ? Subject.findOne({ _id: data.subjectId, tenantId, gradeId: data.gradeId }).select('_id') : null,
       Section.findOne({ _id: data.sectionId, tenantId }).select('_id'),
       Grade.findOne({ _id: data.gradeId, tenantId }).select('_id'),
-      Teacher.findOne({ _id: data.teacherId, tenantId, isDeleted: false }).select('_id'),
+      data.teacherId ? Teacher.findOne({ _id: data.teacherId, tenantId, isDeleted: false }).select('_id') : null,
+      data.subjectId && data.teacherId
+        ? TeacherSubject.findOne({
+            tenantId,
+            teacherId: data.teacherId,
+            subjectId: data.subjectId,
+            gradeId: data.gradeId,
+            sectionId: data.sectionId,
+            academicYearId: timetable.academicYearId,
+            status: 'active',
+          }).select('_id')
+        : null,
       data.roomId ? Room.findOne({ _id: data.roomId, tenantId }).select('_id') : null,
     ]);
-    if (!subject || !section || !grade || !teacher || (data.roomId && !room)) {
+    if (!section || !grade || (!data.isBreak && (!subject || !teacher || !assignment)) || (data.roomId && !room)) {
       throw new AppError('Timetable references must belong to the active school', 400);
     }
 
@@ -234,14 +246,25 @@ export class TimetableService {
       throw new AppError('Timetable entry class and section must match the timetable', 400);
     }
     this.validateTime(merged.startTime, merged.endTime);
-    const [subject, section, grade, teacher, room] = await Promise.all([
-      Subject.findOne({ _id: merged.subjectId, tenantId }).select('_id'),
+    const [subject, section, grade, teacher, assignment, room] = await Promise.all([
+      merged.subjectId ? Subject.findOne({ _id: merged.subjectId, tenantId, gradeId: merged.gradeId }).select('_id') : null,
       Section.findOne({ _id: merged.sectionId, tenantId }).select('_id'),
       Grade.findOne({ _id: merged.gradeId, tenantId }).select('_id'),
-      Teacher.findOne({ _id: merged.teacherId, tenantId, isDeleted: false }).select('_id'),
+      merged.teacherId ? Teacher.findOne({ _id: merged.teacherId, tenantId, isDeleted: false }).select('_id') : null,
+      merged.subjectId && merged.teacherId
+        ? TeacherSubject.findOne({
+            tenantId,
+            teacherId: merged.teacherId,
+            subjectId: merged.subjectId,
+            gradeId: merged.gradeId,
+            sectionId: merged.sectionId,
+            academicYearId: timetable.academicYearId,
+            status: 'active',
+          }).select('_id')
+        : null,
       merged.roomId ? Room.findOne({ _id: merged.roomId, tenantId }).select('_id') : null,
     ]);
-    if (!subject || !section || !grade || !teacher || (merged.roomId && !room)) {
+    if (!section || !grade || (!merged.isBreak && (!subject || !teacher || !assignment)) || (merged.roomId && !room)) {
       throw new AppError('Timetable references must belong to the active school', 400);
     }
 

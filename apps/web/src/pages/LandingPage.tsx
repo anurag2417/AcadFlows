@@ -23,7 +23,7 @@ const FEATURES: FeatureItem[] = [
     icon: '▦',
     title: 'Academic Management',
     description:
-      'Classes, subjects, timetables, and assignments, all in one place.',
+      'Manage academic years, classes, sections, subjects, and teacher assignments.',
   },
   {
     icon: '◌',
@@ -33,27 +33,26 @@ const FEATURES: FeatureItem[] = [
   },
   {
     icon: '◉',
-    title: 'Simple role-based access',
+    title: 'Admin-managed accounts',
     description:
-      'Focused dashboards for admins, teachers, students, and guardians.',
+      'Admins create student and teacher accounts and share temporary login credentials.',
   },
   {
     icon: '◫',
-    title: 'Reports that matter',
+    title: 'Grades and report cards',
     description:
-      'Attendance, grades, and school activity at a glance.',
+      'Record marks, review performance, and generate academic-year report cards.',
   },
   {
     icon: '✓',
     title: 'Attendance Tracking',
-    description:
-      'Daily attendance, class-teacher controls, and monthly reports.',
+    description: 'Mark attendance by class-section and review clear attendance reports.',
   },
   {
     icon: '⌁',
-    title: 'Simple school operations',
+    title: 'Class-section timetables',
     description:
-      'Manage academics, attendance, assignments, and grades without unnecessary complexity.',
+      'Create separate timetables for every class-section and keep schedules conflict-free.',
   },
 ];
 
@@ -61,45 +60,45 @@ const BENEFITS: BenefitItem[] = [
   {
     icon: 'IN',
     title: 'Built for India',
-    description: 'INR, IST, +91 phone numbers, and Apr–Mar academic years.',
+    description: 'Practical workflows for Indian schools and academic-year operations.',
   },
   {
     icon: '₹',
-    title: 'Free to start',
-    description: 'No credit card. Run a full academic year on the free tier.',
+    title: 'Simple to manage',
+    description: 'A focused workspace without unnecessary operational modules.',
   },
   {
     icon: '↗',
     title: 'Works on any device',
-    description: 'Phone, tablet, or desktop — the same school, everywhere.',
+    description: 'Phone, tablet, or desktop — your school workspace stays accessible.',
   },
   {
     icon: '⌑',
-    title: 'Your data stays yours',
-    description: 'Each school is fully isolated. No cross-tenant access.',
+    title: 'Role-specific visibility',
+    description: 'Students and guardians see only the academic information they are allowed to access.',
   },
 ];
 
 const HOW_IT_WORKS = [
   {
     step: '1',
-    title: 'Register your school',
-    description: 'Get a unique 10-character school code in seconds.',
+    title: 'Create your school workspace',
+    description: 'Set up your school profile and academic year.',
   },
   {
     step: '2',
     title: 'Set up academics',
-    description: 'Add grades, sections, subjects, and assign teachers.',
+    description: 'Add classes, sections, subjects, and class-section timetables.',
   },
   {
     step: '3',
-    title: 'Invite your team',
-    description: 'Admins add people and share secure temporary credentials.',
+    title: 'Add your people',
+    description: 'Create teacher, student, and guardian-linked accounts from the admin panel.',
   },
   {
     step: '4',
-    title: 'Run the school day',
-    description: 'Attendance, assignments, grades, and academic records — together.',
+    title: 'Run the academic day',
+    description: 'Manage attendance, assignments, grades, report cards, and results together.',
   },
 ];
 
@@ -304,8 +303,8 @@ export default function LandingPage() {
               </h1>
 
               <p className="mt-6 max-w-xl text-[17px] leading-7 text-muted sm:text-lg sm:leading-8">
-                One platform for academics, attendance, and academic records,
-                and performance. Give your team more time to focus on students.
+                A focused school-management platform for academics, attendance,
+                assignments, grades, timetables, and report cards.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -326,13 +325,13 @@ export default function LandingPage() {
 
               <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold text-muted">
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckIcon /> Free to start
+                  <CheckIcon /> Built for school admins
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckIcon /> No credit card
+                  <CheckIcon /> Simple role-based access
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckIcon /> Data stays in India
+                  <CheckIcon /> No student self-registration
                 </span>
               </div>
             </div>
@@ -461,7 +460,7 @@ export default function LandingPage() {
                             Quick actions
                           </p>
                           <ul className="mt-3 space-y-2">
-                            {['Add student', 'Mark attendance', 'Send notice'].map(
+                            {['Add student', 'Mark attendance', 'Generate report card'].map(
                               text => (
                                 <li
                                   key={text}
@@ -625,7 +624,7 @@ export default function LandingPage() {
                 Your school deserves a better operating system.
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-[15px] leading-6 text-white/85">
-                Everything your school needs to stay organized — free to start.
+                Keep your school’s academic work organized in one focused workspace.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link
@@ -658,16 +657,16 @@ export default function LandingPage() {
               Acad<span className="text-primary-500">Flows</span>
             </Link>
             <p className="mt-4 max-w-xs text-[15px] leading-6 text-muted">
-              Simple school management, all in one place.
+              Focused school management for everyday academic work.
             </p>
             <p className="mt-5 text-[13px] font-semibold text-muted">
               Made in India for India
             </p>
             <a
-              href="mailto:support@acadflows.in"
+              href="mailto:acadflows00@gmail.com"
               className="mt-2 inline-block text-[15px] font-semibold text-foreground hover:text-primary-600"
             >
-              support@acadflows.in
+              acadflows00@gmail.com
             </a>
           </section>
 
@@ -718,7 +717,7 @@ export default function LandingPage() {
             </h4>
             <ul className="mt-4 space-y-3 text-[15px] text-muted">
               <li>
-                <a href="mailto:support@acadflows.in" className="hover:text-primary-600">
+                <a href="mailto:acadflows00@gmail.com" className="hover:text-primary-600">
                   Contact us
                 </a>
               </li>

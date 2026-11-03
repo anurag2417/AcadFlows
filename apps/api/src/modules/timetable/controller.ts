@@ -33,8 +33,8 @@ const addEntryBaseSchema = z.object({
   dayOfWeek: z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-  subjectId: z.string().min(1),
-  teacherId: z.string().min(1),
+  subjectId: z.string().min(1).optional(),
+  teacherId: z.string().min(1).optional(),
   sectionId: z.string().min(1),
   gradeId: z.string().min(1),
   roomId: z.string().optional(),
@@ -44,7 +44,14 @@ const addEntryBaseSchema = z.object({
   isOptional: z.boolean().default(false),
   notes: z.string().optional(),
 });
-const addEntrySchema = timeRange(addEntryBaseSchema);
+const addEntrySchema = timeRange(addEntryBaseSchema).superRefine((data, ctx) => {
+  if (!data.isBreak && !data.subjectId) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['subjectId'], message: 'Subject is required for a class period' });
+  }
+  if (!data.isBreak && !data.teacherId) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['teacherId'], message: 'Teacher is required for a class period' });
+  }
+});
 
 const createRoomSchema = z.object({
   name: z.string().min(1),
