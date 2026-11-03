@@ -48,6 +48,7 @@ AcadFlows maintains an enterprise-grade documentation ecosystem across engineeri
 | [Platform Admin SOP](docs/PLATFORM_ADMIN_GUIDE.md) | **Operations** | Playbook for verifying, approving, and auditing schools via the platform admin dashboard. |
 | [Incident Response](docs/INCIDENT_RESPONSE.md) | **Reliability** | Severity levels (SEV-0 to SEV-3), containment playbooks, and disaster recovery. |
 | [Upcoming Features PRD](docs/UPCOMING_FEATURES.md) | **Roadmap** | Specifications for Mobile App, Digital Fees, Perplexity AI Workspace, Shiksha Sathi, & VisionFlow Face Attendance. |
+| [Master Execution Plan](docs/MASTER_EXECUTION_PLAN.md) | **Strategy** | Step-by-step phased execution blueprint: Core Web App Polish ➔ Web Integrations ➔ Mobile App. |
 | [Product Roadmap](docs/SAAS_PRODUCT.md) | **Product** | High-level product vision, feature capabilities, and market readiness roadmap. |
 | [Contributing Guide](CONTRIBUTING.md) | **Community** | Code standards, Git commit guidelines, and pull request procedures. |
 | [Code of Conduct](CODE_OF_CONDUCT.md) | **Community** | Contributor Covenant standards and community safety guidelines. |

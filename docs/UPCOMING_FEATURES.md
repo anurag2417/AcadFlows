@@ -251,3 +251,4 @@ Traditional manual roll-call wastes 10–15 minutes of every classroom period, w
 | **Q3** | **Shiksha Sathi Curriculum Engine** | NCERT/CBSE question banks, 1-click AI assignment generator, bilingual Hindi/English. | Weeks 11–16 |
 | **Q4** | **Perplexity AI Workspace** | Academic RAG pipeline, persistent user threads, citation cards, safe student mode. | Weeks 17–20 |
 | **Q5** | **VisionFlow Face Attendance** | Mobile camera group capture, face detection & embedding matching, 1-tap roll-call. | Weeks 21–26 |
+
