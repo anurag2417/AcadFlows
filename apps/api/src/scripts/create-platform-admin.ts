@@ -4,7 +4,9 @@ import mongoose from 'mongoose';
 // Fix for Windows Node.js querySrv EBADRESP when resolving MongoDB Atlas SRV records
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
-} catch {}
+} catch (_err) {
+  // Ignore DNS override errors in restricted environments
+}
 import { config } from '../config';
 import { User } from '../models/User';
 import { Tenant } from '../models/Tenant';
