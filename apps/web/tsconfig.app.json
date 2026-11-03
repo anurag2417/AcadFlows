@@ -8,6 +8,10 @@
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 
+    "baseUrl": ".",
+    "paths": {
+      "@acadflows/shared": ["../../packages/shared/src/index.ts"]
+    },
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
