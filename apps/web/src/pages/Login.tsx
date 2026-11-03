@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTenant } from '../contexts/TenantContext';
 import { getTenantSlugFromURL } from '../lib/tenant';
 import ThemeToggle from '../components/ThemeToggle';
+import Logo from '../components/ui/Logo';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ export default function LoginPage() {
       } else if (err.response?.status === 403) {
         setError(
           err.response?.data?.error ||
-            'Your account is not active. Please contact your school administrator.',
+          'Your account is not active. Please contact your school administrator.',
         );
       } else if (err.response?.status === 429) {
         setError('Too many login attempts. Please try again later.');
@@ -89,14 +90,7 @@ export default function LoginPage() {
       {/* Left: form panel */}
       <div className="w-full lg:w-[46%] flex flex-col px-6 sm:px-12 lg:px-16 py-10">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-lg">🏫</span>
-            </div>
-            <span className="font-semibold text-foreground tracking-tight">
-              Acad<span className="text-primary-600">Flows</span>
-            </span>
-          </Link>
+          <Logo to="/" size="md" showText={true} />
           <div className="flex items-center gap-3">
             {displayName && (
               <span className="text-xs font-medium text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30 rounded-full px-3 py-1">

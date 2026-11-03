@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
+import Logo, { LogoIcon } from '../components/ui/Logo';
 
 /* ─────────────────────────────────────────────────────────── */
 /* Content (honest — no fabricated testimonials or stats)    */
@@ -170,17 +171,12 @@ export default function LandingPage() {
           className="mx-auto flex h-[72px] w-full items-center justify-between px-5 sm:px-7 lg:px-8"
           aria-label="Main navigation"
         >
-          <Link
+          <Logo
             to="/"
-            className="group inline-flex items-center gap-2.5 text-[21px] font-black tracking-[-0.03em]"
-          >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary-500 text-[15px] text-white shadow-sm transition group-hover:scale-105">
-              AF
-            </span>
-            <span>
-              Acad<span className="text-primary-500">Flows</span>
-            </span>
-          </Link>
+            size="md"
+            showText={true}
+            textClassName="text-[21px] font-black tracking-[-0.03em]"
+          />
 
           <div className="hidden items-center gap-2 md:flex">
             <a
@@ -358,10 +354,8 @@ export default function LandingPage() {
                   <div className="grid min-h-[420px] grid-cols-12">
                     <aside className="col-span-3 hidden border-r border-border bg-surface p-3 sm:block">
                       <div className="mb-6 flex items-center gap-2 px-1">
-                        <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary-500 text-[10px] font-black text-white">
-                          AF
-                        </div>
-                        <span className="text-[12px] font-black">AcadFlows</span>
+                        <LogoIcon className="w-6 h-6" />
+                        <span className="text-[12px] font-black">Acad<span className="text-primary-500">Flows</span></span>
                       </div>
                       <p className="mb-2 px-2 text-[9px] font-bold uppercase tracking-widest text-muted">
                         Workspace
@@ -650,12 +644,7 @@ export default function LandingPage() {
       <footer className="border-t border-border bg-surface">
         <div className="mx-auto grid w-full gap-10 px-5 py-12 sm:px-7 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
           <section>
-            <Link to="/" className="inline-flex items-center gap-2 text-xl font-black">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary-500 text-[12px] text-white">
-                AF
-              </span>
-              Acad<span className="text-primary-500">Flows</span>
-            </Link>
+            <Logo to="/" size="sm" showText={true} textClassName="text-xl font-black" />
             <p className="mt-4 max-w-xs text-[15px] leading-6 text-muted">
               Focused school management for everyday academic work.
             </p>

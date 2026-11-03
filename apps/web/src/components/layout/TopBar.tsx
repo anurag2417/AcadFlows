@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTenant } from '../../contexts/TenantContext';
 import ThemeToggle from '../ThemeToggle';
+import Logo from '../ui/Logo';
 import { cn } from '../../lib/cn';
 
 interface TopBarProps {
@@ -80,14 +81,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
           </svg>
         </button>
 
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center shadow-sm">
-            <span className="text-base">🏫</span>
-          </div>
-          <span className="hidden sm:inline font-bold text-foreground tracking-tight text-lg">
-            Acad<span className="text-primary-500">Flows</span>
-          </span>
-        </Link>
+        <Logo to="/dashboard" size="sm" showText={true} textClassName="hidden sm:inline" />
 
         {/* Tenant chip */}
         {tenant && (

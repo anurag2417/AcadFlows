@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createSchool } from '../lib/tenant';
 import ThemeToggle from '../components/ThemeToggle';
+import Logo from '../components/ui/Logo';
 
 interface CreatedSchool {
   id: string;
@@ -88,14 +89,7 @@ export default function SchoolRegistrationPage() {
       <div className="min-h-screen flex bg-background text-foreground">
         <div className="w-full lg:w-[46%] flex flex-col px-6 sm:px-12 lg:px-16 py-10">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-primary-500 rounded-lg flex items-center justify-center">
-                <span className="text-lg">🏫</span>
-              </div>
-              <span className="font-semibold text-foreground tracking-tight">
-                Acad<span className="text-primary-500">Flows</span>
-              </span>
-            </Link>
+            <Logo to="/" size="md" showText={true} />
             <ThemeToggle />
           </div>
 
@@ -261,14 +255,7 @@ export default function SchoolRegistrationPage() {
     <div className="min-h-screen flex bg-background text-foreground">
       <div className="w-full lg:w-[46%] flex flex-col px-6 sm:px-12 lg:px-16 py-10">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-primary-500 rounded-lg flex items-center justify-center">
-              <span className="text-lg">🏫</span>
-            </div>
-            <span className="font-semibold text-foreground tracking-tight">
-              Acad<span className="text-primary-500">Flows</span>
-            </span>
-          </Link>
+          <Logo to="/" size="md" showText={true} />
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link

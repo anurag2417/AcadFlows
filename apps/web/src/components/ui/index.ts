@@ -25,3 +25,7 @@ export type { BadgeVariant, BadgeSize } from './Badge';
 
 // Phone
 export { PhoneInput } from './PhoneInput';
+
+// Logo
+export { Logo, LogoIcon } from './Logo';
+export type { LogoProps } from './Logo';
